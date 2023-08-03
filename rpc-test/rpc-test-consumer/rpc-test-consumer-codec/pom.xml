@@ -3,20 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>lyzzcw-rpc</artifactId>
+        <artifactId>rpc-test-consumer</artifactId>
         <groupId>lyzzcw.work.rpc</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>rpc-test</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <module>rpc-test-scanner</module>
-        <module>rpc-test-provider</module>
-        <module>rpc-test-sundry</module>
-        <module>rpc-test-consumer</module>
-    </modules>
+    <artifactId>rpc-test-consumer-codec</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -25,10 +18,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>RELEASE</version>
-            <scope>compile</scope>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-codec</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
