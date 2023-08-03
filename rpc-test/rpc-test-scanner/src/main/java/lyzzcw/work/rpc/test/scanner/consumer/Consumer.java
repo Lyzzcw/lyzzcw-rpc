@@ -1,7 +1,8 @@
 package lyzzcw.work.rpc.test.scanner.consumer;
 
 import lyzzcw.work.rpc.annotation.RpcReference;
-import lyzzcw.work.rpc.test.scanner.service.DemoService;
+import lyzzcw.work.rpc.test.api.DemoService;
+
 
 /**
  * @author lzy

@@ -17,6 +17,7 @@
         <module>rpc-protocol</module>
         <module>rpc-codec</module>
         <module>rpc-serialization</module>
+        <module>rpc-threadpool</module>
     </modules>
 
     <properties>

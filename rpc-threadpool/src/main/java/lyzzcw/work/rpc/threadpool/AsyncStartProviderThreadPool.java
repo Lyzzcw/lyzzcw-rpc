@@ -13,13 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lyzzcw.work.rpc.test.scanner.service;
+package lyzzcw.work.rpc.threadpool;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author lzy
  * @version 1.0.0
- * @description 测试@RpcService注解的扫描
+ * @description 异步启动服务提供者
  */
-public interface DemoService {
-    
+public class AsyncStartProviderThreadPool {
+
+    private static ExecutorService executorService;
+
+    static {
+        executorService = Executors.newSingleThreadExecutor();
+    }
+
+    public static void submit(Runnable task){
+        executorService.submit(task);
+    }
+
+    public static void close(){
+        executorService.shutdown();
+    }
 }

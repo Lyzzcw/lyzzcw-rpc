@@ -26,11 +26,11 @@ public class RpcTestConsumerHandler extends SimpleChannelInboundHandler<RpcProto
         RpcProtocol<RpcRequest> protocol = new RpcProtocol<RpcRequest>();
         protocol.setHeader(RpcHeaderFactory.getRequestHeader("jdk", RpcType.REQUEST.getType()));
         RpcRequest request = new RpcRequest();
-        request.setClassName("lyzzcw.work.rpc.test.scanner.service.DemoService");
+        request.setClassName("lyzzcw.work.rpc.test.api.DemoService");
         request.setGroup("lzy");
         request.setMethodName("hello");
-        request.setParameters(new Object[]{"lzy"});
-        request.setParameterTypes(new Class[]{String.class});
+        request.setParameters(new Object[]{"lzy",28});
+        request.setParameterTypes(new Class[]{String.class,Integer.class});
         request.setVersion("1.0.0");
         request.setAsync(false);
         request.setOneway(false);
