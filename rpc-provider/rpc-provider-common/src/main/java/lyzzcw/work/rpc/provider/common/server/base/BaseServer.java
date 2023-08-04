@@ -8,8 +8,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.codec.RpcDecoder;
 import lyzzcw.work.rpc.codec.RpcEncoder;
@@ -35,14 +33,16 @@ public class BaseServer implements Server {
     private String host = "127.0.0.1";
     //端口号
     private int port = 27110;
+    //reflect type
+    private String reflectType;
 
-
-    public BaseServer(String serverAddress) {
+    public BaseServer(String serverAddress,String reflectType) {
         if (!StringUtils.isEmpty(serverAddress)){
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
             this.port = Integer.parseInt(serverArray[1]);
         }
+        this.reflectType = reflectType;
     }
 
     @Override
@@ -59,7 +59,8 @@ public class BaseServer implements Server {
 
                             ch.pipeline().addLast(new RpcDecoder());
                             ch.pipeline().addLast(new RpcEncoder());
-                            ch.pipeline().addLast(new RpcProviderHandler(handlerMap));
+                            ch.pipeline().addLast(new RpcProviderHandler
+                                    (reflectType, handlerMap));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)

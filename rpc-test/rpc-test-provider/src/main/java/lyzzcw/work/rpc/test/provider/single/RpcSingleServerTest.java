@@ -1,5 +1,6 @@
 package lyzzcw.work.rpc.test.provider.single;
 
+import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.provider.RpcSingleServer;
 import org.junit.Test;
 
@@ -13,7 +14,10 @@ public class RpcSingleServerTest {
 
     @Test
     public void startRpcSingleServer(){
-        RpcSingleServer singleServer = new RpcSingleServer("127.0.0.1:27880", "lyzzcw.work.rpc.test");
+        RpcSingleServer singleServer = new RpcSingleServer(
+                "127.0.0.1:27880",
+                "lyzzcw.work.rpc.test",
+                RpcConstants.REFLECT_TYPE_CGLIB);
         singleServer.startNettyServer();
     }
 
