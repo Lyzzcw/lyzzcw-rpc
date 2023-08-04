@@ -11,6 +11,7 @@ import lyzzcw.work.rpc.consumer.common.handler.RpcConsumerHandler;
 import lyzzcw.work.rpc.consumer.common.initializer.RpcConsumerInitializer;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
+import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,7 +53,7 @@ public class RpcConsumer {
         eventLoopGroup.shutdownGracefully();
     }
 
-    public Object sendRequest(RpcProtocol<RpcRequest> protocol) throws Exception {
+    public RpcFuture sendRequest(RpcProtocol<RpcRequest> protocol) throws Exception {
         // TODO 暂时写死，后续引入注册中心后，从注册中心获取
         String serverAddress = "127.0.0.1";
         int port = 27880;

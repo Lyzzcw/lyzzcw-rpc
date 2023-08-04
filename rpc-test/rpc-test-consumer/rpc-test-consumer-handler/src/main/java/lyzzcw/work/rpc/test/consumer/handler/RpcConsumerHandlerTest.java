@@ -7,6 +7,7 @@ import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
 import lyzzcw.work.rpc.protocol.header.RpcHeaderFactory;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
+import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
 
 import java.util.concurrent.TimeUnit;
 
@@ -20,8 +21,8 @@ import java.util.concurrent.TimeUnit;
 public class RpcConsumerHandlerTest {
     public static void main(String[] args) throws Exception {
         RpcConsumer rpcConsumer = RpcConsumer.getInstance();
-        Object object = rpcConsumer.sendRequest(getRpcRequestProtocol());
-        log.info("received rpc response:{}", object);
+        RpcFuture future = rpcConsumer.sendRequest(getRpcRequestProtocol());
+        log.info("received rpc response:{}", future.get());
         TimeUnit.SECONDS.sleep(2L);
         rpcConsumer.close();
     }
