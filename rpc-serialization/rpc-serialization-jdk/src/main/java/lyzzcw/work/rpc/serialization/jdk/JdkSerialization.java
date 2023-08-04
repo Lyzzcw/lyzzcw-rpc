@@ -31,7 +31,9 @@ public class JdkSerialization implements Serialization {
 
     @Override
     public <T> byte[] serialize(T obj) {
-        log.info("execute jdk serialize...");
+        if(log.isDebugEnabled()){
+            log.debug("execute jdk serialize...");
+        }
         if (obj == null){
             throw new SerializerException("serialize object is null");
         }
@@ -47,7 +49,9 @@ public class JdkSerialization implements Serialization {
 
     @Override
     public <T> T deserialize(byte[] data, Class<T> cls) {
-        log.info("execute jdk deserialize...");
+        if(log.isDebugEnabled()){
+            log.debug("execute jdk deserialize...");
+        }
         if (data == null){
             throw new SerializerException("deserialize data is null");
         }

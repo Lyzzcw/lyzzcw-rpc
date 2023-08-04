@@ -15,8 +15,11 @@ import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.protocol.response.RpcResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 import java.net.SocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author lzy
@@ -28,6 +31,7 @@ import java.net.SocketAddress;
 public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<RpcResponse>> {
     private volatile Channel channel;
     private SocketAddress remotePeer;
+    private Map<Long,RpcProtocol<RpcResponse>> pendingResponse = new ConcurrentHashMap<>();
 
     //netty 激活连接
     @Override
@@ -44,16 +48,26 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcProtocol<RpcResponse> protocol) throws Exception {
+        Assert.notNull(protocol, "consumer received none protocol");
         log.info("服务消费者接收到的数据===>>>{}", JSONObject.toJSONString(protocol));
+        Long requestId = protocol.getHeader().getRequestId();
+        this.pendingResponse.put(requestId,protocol);
     }
 
     /**
      * 服务消费者向服务请求者发送请求
      * @param protocol
      */
-    public void sendRequest(RpcProtocol<RpcRequest> protocol){
+    public Object sendRequest(RpcProtocol<RpcRequest> protocol){
         log.info("服务消费者发送的数据===>>>{}", JSONObject.toJSONString(protocol));
         channel.writeAndFlush(protocol);
+        while (true) {
+            RpcProtocol<RpcResponse> responseRpcProtocol =
+                    pendingResponse.remove(protocol.getHeader().getRequestId());
+            if(responseRpcProtocol != null){
+                return responseRpcProtocol.getBody().getResult();
+            }
+        }
     }
 
     public void close(){

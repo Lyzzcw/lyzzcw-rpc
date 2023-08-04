@@ -20,7 +20,8 @@ import java.util.concurrent.TimeUnit;
 public class RpcConsumerHandlerTest {
     public static void main(String[] args) throws Exception {
         RpcConsumer rpcConsumer = RpcConsumer.getInstance();
-        rpcConsumer.sendRequest(getRpcRequestProtocol());
+        Object object = rpcConsumer.sendRequest(getRpcRequestProtocol());
+        log.info("received rpc response:{}", object);
         TimeUnit.SECONDS.sleep(2L);
         rpcConsumer.close();
     }
