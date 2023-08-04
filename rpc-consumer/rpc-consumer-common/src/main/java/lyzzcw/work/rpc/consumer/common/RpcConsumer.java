@@ -68,6 +68,7 @@ public class RpcConsumer {
             handler = getRpcConsumerHandler(serverAddress,port);
             handlerMap.put(key, handler);
         }
+
        return handler.sendRequest(protocol);
     }
 

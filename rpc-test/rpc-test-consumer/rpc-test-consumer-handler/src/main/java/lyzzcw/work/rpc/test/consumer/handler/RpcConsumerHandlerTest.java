@@ -3,11 +3,13 @@ package lyzzcw.work.rpc.test.consumer.handler;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.consumer.common.RpcConsumer;
+import lyzzcw.work.rpc.consumer.common.context.RpcContext;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
 import lyzzcw.work.rpc.protocol.header.RpcHeaderFactory;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
+import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
@@ -19,7 +21,9 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class RpcConsumerHandlerTest {
-    public static void main(String[] args) throws Exception {
+
+    @Test
+    public void testSync() throws Exception {
         RpcConsumer rpcConsumer = RpcConsumer.getInstance();
         RpcFuture future = rpcConsumer.sendRequest(getRpcRequestProtocol());
         log.info("received rpc response:{}", future.get());
@@ -27,6 +31,24 @@ public class RpcConsumerHandlerTest {
         rpcConsumer.close();
     }
 
+    @Test
+    public void testAsync() throws Exception {
+        RpcConsumer rpcConsumer = RpcConsumer.getInstance();
+        rpcConsumer.sendRequest(getRpcRequestProtocol());
+        RpcFuture future = RpcContext.getContext().getRpcFuture();
+        log.info("received rpc response:{}", future.get());
+        TimeUnit.SECONDS.sleep(2L);
+        rpcConsumer.close();
+    }
+
+    @Test
+    public void testOneway() throws Exception {
+        RpcConsumer rpcConsumer = RpcConsumer.getInstance();
+        rpcConsumer.sendRequest(getRpcRequestProtocol());
+        log.info("oneway none need response");
+        TimeUnit.SECONDS.sleep(2L);
+        rpcConsumer.close();
+    }
     private static RpcProtocol<RpcRequest> getRpcRequestProtocol(){
         log.info("发送数据开始...");
         //模拟发送数据
@@ -39,10 +61,14 @@ public class RpcConsumerHandlerTest {
         request.setParameters(new Object[]{"lzy",28});
         request.setParameterTypes(new Class[]{String.class,Integer.class});
         request.setVersion("1.0.0");
-        request.setAsync(false);
-        request.setOneway(false);
+        //set send type
+        request.setAsync(true);
+        request.setOneway(true);
+
         protocol.setBody(request);
         log.info("服务消费者发送的数据===>>>{}", JSONObject.toJSONString(protocol));
         return protocol;
     }
+
+
 }
