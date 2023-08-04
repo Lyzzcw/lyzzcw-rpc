@@ -12,6 +12,7 @@ import lyzzcw.work.rpc.consumer.common.initializer.RpcConsumerInitializer;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
+import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,13 +28,15 @@ public class RpcConsumer {
     private final Bootstrap bootstrap;
     private final EventLoopGroup eventLoopGroup;
     private static Map<String, RpcConsumerHandler> handlerMap = new ConcurrentHashMap<>();
+    //并发处理线程池
+    private ConcurrentThreadPool concurrentThreadPool = ConcurrentThreadPool.getInstance(2,4);
 
     private RpcConsumer(){
         bootstrap = new Bootstrap();
         eventLoopGroup = new NioEventLoopGroup(4);
         bootstrap.group(eventLoopGroup)
                 .channel(NioSocketChannel.class)
-                .handler(new RpcConsumerInitializer());
+                .handler(new RpcConsumerInitializer(concurrentThreadPool));
     }
 
     //设置单例
@@ -51,6 +54,7 @@ public class RpcConsumer {
 
     public void close(){
         eventLoopGroup.shutdownGracefully();
+        concurrentThreadPool.stop();
     }
 
     public RpcFuture sendRequest(RpcProtocol<RpcRequest> protocol) throws Exception {

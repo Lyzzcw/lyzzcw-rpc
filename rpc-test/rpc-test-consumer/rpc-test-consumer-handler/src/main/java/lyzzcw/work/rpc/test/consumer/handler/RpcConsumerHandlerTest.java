@@ -8,6 +8,7 @@ import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
 import lyzzcw.work.rpc.protocol.header.RpcHeaderFactory;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
+import lyzzcw.work.rpc.proxy.api.callback.AsyncRpcCallback;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
 import org.junit.Test;
 
@@ -26,7 +27,18 @@ public class RpcConsumerHandlerTest {
     public void testSync() throws Exception {
         RpcConsumer rpcConsumer = RpcConsumer.getInstance();
         RpcFuture future = rpcConsumer.sendRequest(getRpcRequestProtocol());
-        log.info("received rpc response:{}", future.get());
+        future.addCallback(new AsyncRpcCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                log.info("received rpc response:{}", result);
+            }
+
+            @Override
+            public void onException(Exception e) {
+                log.info("received rpc response error:{}", e.getMessage());
+            }
+        });
+
         TimeUnit.SECONDS.sleep(2L);
         rpcConsumer.close();
     }
@@ -62,8 +74,8 @@ public class RpcConsumerHandlerTest {
         request.setParameterTypes(new Class[]{String.class,Integer.class});
         request.setVersion("1.0.0");
         //set send type
-        request.setAsync(true);
-        request.setOneway(true);
+        request.setAsync(false);
+        request.setOneway(false);
 
         protocol.setBody(request);
         log.info("服务消费者发送的数据===>>>{}", JSONObject.toJSONString(protocol));

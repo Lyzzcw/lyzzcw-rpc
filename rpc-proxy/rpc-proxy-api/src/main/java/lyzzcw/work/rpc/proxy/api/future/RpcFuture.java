@@ -15,20 +15,25 @@
  */
 package lyzzcw.work.rpc.proxy.api.future;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcStatus;
 import lyzzcw.work.rpc.protocol.header.RpcHeader;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.protocol.response.RpcResponse;
+import lyzzcw.work.rpc.proxy.api.callback.AsyncRpcCallback;
+import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author lzy
@@ -42,13 +47,20 @@ public class RpcFuture extends CompletableFuture<Object> {
     private RpcProtocol<RpcRequest> requestRpcProtocol;
     private RpcProtocol<RpcResponse> responseRpcProtocol;
     private long startTime;
-
+    //默认超时时间5s
     private long responseTimeThreshold = 5000;
+    //回调接口
+    private List<AsyncRpcCallback> pendingCallbacks = Lists.newArrayList();
+    //添加和执行回调方法时，执行加锁操作
+    private ReentrantLock lock = new ReentrantLock();
 
-    public RpcFuture(RpcProtocol<RpcRequest> requestRpcProtocol) {
+    private ConcurrentThreadPool concurrentThreadPool;
+
+    public RpcFuture(RpcProtocol<RpcRequest> requestRpcProtocol, ConcurrentThreadPool concurrentThreadPool) {
         this.sync = new Sync();
         this.requestRpcProtocol = requestRpcProtocol;
         this.startTime = System.currentTimeMillis();
+        this.concurrentThreadPool = concurrentThreadPool;
     }
 
     @Override
@@ -103,11 +115,48 @@ public class RpcFuture extends CompletableFuture<Object> {
     public void done(RpcProtocol<RpcResponse> responseRpcProtocol) {
         this.responseRpcProtocol = responseRpcProtocol;
         sync.release(1);
+        invokeCallbacks();
         // Threshold
         long responseTime = System.currentTimeMillis() - startTime;
         if (responseTime > this.responseTimeThreshold) {
             log.warn("Service response time is too slow. Request id = " + responseRpcProtocol.getHeader().getRequestId() + ". Response Time = " + responseTime + "ms");
         }
+    }
+
+    private void invokeCallbacks() {
+        lock.lock();
+        try {
+            for (final AsyncRpcCallback callback : pendingCallbacks) {
+                runCallback(callback);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public RpcFuture addCallback(AsyncRpcCallback callback) {
+        lock.lock();
+        try {
+            if (isDone()) {
+                runCallback(callback);
+            } else {
+                this.pendingCallbacks.add(callback);
+            }
+        } finally {
+            lock.unlock();
+        }
+        return this;
+    }
+
+    private void runCallback(final AsyncRpcCallback callback) {
+        final RpcResponse res = this.responseRpcProtocol.getBody();
+        concurrentThreadPool.submit(() -> {
+            if (!res.isError()) {
+                callback.onSuccess(res.getResult());
+            } else {
+                callback.onException(new RuntimeException("Response error", new Throwable(res.getError())));
+            }
+        });
     }
 
     static class Sync extends AbstractQueuedSynchronizer {

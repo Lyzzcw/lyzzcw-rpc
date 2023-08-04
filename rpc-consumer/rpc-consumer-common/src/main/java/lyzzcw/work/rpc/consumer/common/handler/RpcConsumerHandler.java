@@ -15,6 +15,7 @@ import lyzzcw.work.rpc.protocol.header.RpcHeader;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.protocol.response.RpcResponse;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
+import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 import org.springframework.util.Assert;
 
 import java.net.SocketAddress;
@@ -33,7 +34,11 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
     private volatile Channel channel;
     private SocketAddress remotePeer;
     private Map<Long, RpcFuture> pendingResponse = new ConcurrentHashMap<>();
-
+    //并发处理线程池
+    private ConcurrentThreadPool concurrentThreadPool;
+    public RpcConsumerHandler(ConcurrentThreadPool concurrentThreadPool){
+        this.concurrentThreadPool = concurrentThreadPool;
+    }
     //netty 激活连接
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -93,7 +98,7 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
         return future;
     }
     private RpcFuture getRpcFuture(RpcProtocol<RpcRequest> protocol){
-        RpcFuture rpcFuture = new RpcFuture(protocol);
+        RpcFuture rpcFuture = new RpcFuture(protocol,concurrentThreadPool);
         this.pendingResponse.put(protocol.getHeader().getRequestId(), rpcFuture);
         return rpcFuture;
     }

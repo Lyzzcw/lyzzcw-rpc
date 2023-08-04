@@ -22,5 +22,10 @@
             <artifactId>rpc-protocol</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-threadpool</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

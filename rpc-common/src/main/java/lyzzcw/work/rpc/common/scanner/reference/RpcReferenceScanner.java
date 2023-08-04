@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * @author binghe
+ * @author lzy
  * @version 1.0.0
  * @description @RpcReference注解扫描器
  */
