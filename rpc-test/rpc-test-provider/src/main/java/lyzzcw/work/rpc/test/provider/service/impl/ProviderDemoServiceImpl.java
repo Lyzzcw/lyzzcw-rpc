@@ -1,5 +1,6 @@
 package lyzzcw.work.rpc.test.provider.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.annotation.RpcService;
 import lyzzcw.work.rpc.test.api.DemoService;
 
@@ -15,9 +16,11 @@ import lyzzcw.work.rpc.test.api.DemoService;
         interfaceClassName = "lyzzcw.work.rpc.test.api.DemoService",
         version = "1.0.0",
         group = "lzy")
+@Slf4j
 public class ProviderDemoServiceImpl implements DemoService {
     @Override
     public String hello(String name, Integer age) {
+        log.info("Hello :{}, age:{} " , name , age);
         return "success";
     }
 }
