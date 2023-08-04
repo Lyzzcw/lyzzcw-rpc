@@ -24,8 +24,6 @@ import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.protocol.response.RpcResponse;
 import lyzzcw.work.rpc.proxy.api.callback.AsyncRpcCallback;
 import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

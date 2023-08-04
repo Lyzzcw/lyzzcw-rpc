@@ -11,6 +11,7 @@ import lyzzcw.work.rpc.consumer.common.handler.RpcConsumerHandler;
 import lyzzcw.work.rpc.consumer.common.initializer.RpcConsumerInitializer;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
+import lyzzcw.work.rpc.proxy.api.consumer.Consumer;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
 import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 
@@ -24,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Description: 服务消费者
  */
 @Slf4j
-public class RpcConsumer {
+public class RpcConsumer implements Consumer {
     private final Bootstrap bootstrap;
     private final EventLoopGroup eventLoopGroup;
     private static Map<String, RpcConsumerHandler> handlerMap = new ConcurrentHashMap<>();
@@ -57,6 +58,7 @@ public class RpcConsumer {
         concurrentThreadPool.stop();
     }
 
+    @Override
     public RpcFuture sendRequest(RpcProtocol<RpcRequest> protocol) throws Exception {
         // TODO 暂时写死，后续引入注册中心后，从注册中心获取
         String serverAddress = "127.0.0.1";
