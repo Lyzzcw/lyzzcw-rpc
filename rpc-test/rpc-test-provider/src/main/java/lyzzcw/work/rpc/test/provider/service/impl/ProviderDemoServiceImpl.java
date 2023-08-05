@@ -19,7 +19,7 @@ import lyzzcw.work.rpc.test.api.DemoService;
 @Slf4j
 public class ProviderDemoServiceImpl implements DemoService {
     @Override
-    public String hello(String name, Integer age) {
+    public String hello(String name, int age) {
         log.info("Hello :{}, age:{} " , name , age);
         return "success";
     }

@@ -21,5 +21,5 @@ package lyzzcw.work.rpc.test.api;
  * @description 测试@RpcService注解的扫描
  */
 public interface DemoService {
-    String hello(String name,Integer age);
+    String hello(String name,int age);
 }
