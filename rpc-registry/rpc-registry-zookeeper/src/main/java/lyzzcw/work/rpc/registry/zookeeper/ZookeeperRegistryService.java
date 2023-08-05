@@ -17,6 +17,8 @@ package lyzzcw.work.rpc.registry.zookeeper;
 
 
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
+import lyzzcw.work.rpc.loadbalancer.api.ServiceLoadBalancer;
+import lyzzcw.work.rpc.loadbalancer.random.RandomServiceLoadBalancer;
 import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
@@ -47,6 +49,8 @@ public class ZookeeperRegistryService implements RegistryService {
     public static final String ZK_BASE_PATH = "/lzy_rpc";
 
     private ServiceDiscovery<ServiceMeta> serviceDiscovery;
+    //负载均衡接口
+    private ServiceLoadBalancer<ServiceInstance<ServiceMeta>> serviceLoadBalancer;
 
     @Override
     public void init(RegistryConfig registryConfig) throws Exception {
@@ -59,6 +63,7 @@ public class ZookeeperRegistryService implements RegistryService {
                 .basePath(ZK_BASE_PATH)
                 .build();
         this.serviceDiscovery.start();
+        this.serviceLoadBalancer = new RandomServiceLoadBalancer<>();
     }
 
     @Override
@@ -88,20 +93,12 @@ public class ZookeeperRegistryService implements RegistryService {
     @Override
     public ServiceMeta discovery(String serviceName, int invokerHashCode) throws Exception {
         Collection<ServiceInstance<ServiceMeta>> serviceInstances = serviceDiscovery.queryForInstances(serviceName);
-        ServiceInstance<ServiceMeta> instance = this.selectOneServiceInstance((List<ServiceInstance<ServiceMeta>>) serviceInstances);
+        ServiceInstance<ServiceMeta> instance =
+                serviceLoadBalancer.select((List<ServiceInstance<ServiceMeta>>) serviceInstances, invokerHashCode);
         if (instance != null) {
             return instance.getPayload();
         }
         return null;
-    }
-
-    private ServiceInstance<ServiceMeta> selectOneServiceInstance(List<ServiceInstance<ServiceMeta>> serviceInstances){
-        if (CollectionUtils.isEmpty(serviceInstances)){
-            return null;
-        }
-        Random random = new Random();
-        int index = random.nextInt(serviceInstances.size());
-        return serviceInstances.get(index);
     }
 
     @Override
