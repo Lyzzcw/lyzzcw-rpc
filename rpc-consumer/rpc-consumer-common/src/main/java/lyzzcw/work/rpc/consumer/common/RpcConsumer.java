@@ -7,15 +7,20 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
+import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
 import lyzzcw.work.rpc.consumer.common.handler.RpcConsumerHandler;
+import lyzzcw.work.rpc.consumer.common.helper.RpcConsumerHandlerHelper;
 import lyzzcw.work.rpc.consumer.common.initializer.RpcConsumerInitializer;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
+import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.proxy.api.consumer.Consumer;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
+import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -28,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RpcConsumer implements Consumer {
     private final Bootstrap bootstrap;
     private final EventLoopGroup eventLoopGroup;
-    private static Map<String, RpcConsumerHandler> handlerMap = new ConcurrentHashMap<>();
     //并发处理线程池
     private ConcurrentThreadPool concurrentThreadPool = ConcurrentThreadPool.getInstance(2,4);
 
@@ -54,28 +58,35 @@ public class RpcConsumer implements Consumer {
     }
 
     public void close(){
+        RpcConsumerHandlerHelper.closeRpcClientHandler();
         eventLoopGroup.shutdownGracefully();
         concurrentThreadPool.stop();
     }
 
     @Override
-    public RpcFuture sendRequest(RpcProtocol<RpcRequest> protocol) throws Exception {
+    public RpcFuture sendRequest(RpcProtocol<RpcRequest> protocol, RegistryService registryService) throws Exception {
         // TODO 暂时写死，后续引入注册中心后，从注册中心获取
-        String serverAddress = "127.0.0.1";
-        int port = 27880;
-        String key = serverAddress.concat("_").concat(String.valueOf(port));
-        RpcConsumerHandler handler = handlerMap.get(key);
-        //缓存中无RpcClientHandler
-        if(handler == null){
-            handler = getRpcConsumerHandler(serverAddress, port);
-        }else if(!handler.getChannel().isActive()){
-            //缓存中存在RpcClientHandler ,但不活跃
-            handler.close();
-            handler = getRpcConsumerHandler(serverAddress,port);
-            handlerMap.put(key, handler);
+        RpcRequest request = protocol.getBody();
+        String serviceKey = RpcServiceHelper.buildServiceKey(
+                request.getClassName(),request.getVersion(),request.getGroup());
+        Object[] params = request.getParameters();
+        int invokeHashCode = (params == null || params.length <= 0) ? serviceKey.hashCode() : params[0].hashCode();
+        ServiceMeta serviceMeta = registryService.discovery(serviceKey, invokeHashCode);
+        if(serviceMeta != null){
+            RpcConsumerHandler handler = RpcConsumerHandlerHelper.get(serviceMeta);
+            //缓存中无RpcClientHandler
+            if(handler == null){
+                handler = getRpcConsumerHandler(serviceMeta.getServiceAddr(), serviceMeta.getServicePort());
+                RpcConsumerHandlerHelper.put(serviceMeta,handler);
+            }else if(!handler.getChannel().isActive()){
+                //缓存中存在RpcClientHandler ,但不活跃
+                handler.close();
+                handler = getRpcConsumerHandler(serviceMeta.getServiceAddr(), serviceMeta.getServicePort());
+                RpcConsumerHandlerHelper.put(serviceMeta,handler);
+            }
+            return handler.sendRequest(protocol);
         }
-
-       return handler.sendRequest(protocol);
+        return null;
     }
 
     /**

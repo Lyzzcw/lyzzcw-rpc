@@ -21,6 +21,11 @@
             <artifactId>rpc-proxy-jdk</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-registry-zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <properties>

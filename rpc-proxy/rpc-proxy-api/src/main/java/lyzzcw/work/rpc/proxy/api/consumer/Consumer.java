@@ -3,6 +3,7 @@ package lyzzcw.work.rpc.proxy.api.consumer;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
+import lyzzcw.work.rpc.registry.api.RegistryService;
 
 /**
  * @author lzy
@@ -14,5 +15,5 @@ public interface Consumer {
     /**
      * 消费者发送 request 请求
      */
-    RpcFuture sendRequest(RpcProtocol<RpcRequest> protocol) throws Exception;
+    RpcFuture sendRequest(RpcProtocol<RpcRequest> protocol, RegistryService registryService) throws Exception;
 }

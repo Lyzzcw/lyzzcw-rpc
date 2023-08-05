@@ -7,6 +7,9 @@ import lyzzcw.work.rpc.proxy.api.async.IAsyncObjectProxy;
 import lyzzcw.work.rpc.proxy.api.config.ProxyConfig;
 import lyzzcw.work.rpc.proxy.api.object.ObjectProxy;
 import lyzzcw.work.rpc.proxy.jdk.JdkProxyFactory;
+import lyzzcw.work.rpc.registry.api.RegistryService;
+import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
+import lyzzcw.work.rpc.registry.zookeeper.ZookeeperRegistryService;
 
 /**
  * @author lzy
@@ -33,6 +36,10 @@ public class RpcClient {
      */
     private long timeout;
     /**
+     * 服务注册与发现实例
+     */
+    private RegistryService registryService;
+    /**
      * 是否异步调用
      */
     private boolean async;
@@ -40,24 +47,47 @@ public class RpcClient {
      * 是否单向调用
      */
     private boolean oneway;
-    public RpcClient(String serviceVersion, String serviceGroup, String serializationType, long timeout, boolean async, boolean oneway) {
+    public RpcClient(String registryAddress, String registryType,String serviceVersion,
+                     String serviceGroup, String serializationType, long timeout,
+                     boolean async, boolean oneway) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.serviceGroup = serviceGroup;
         this.serializationType = serializationType;
         this.async = async;
         this.oneway = oneway;
+        this.registryService = this.getRegistryService(registryAddress, registryType);
     }
+
+    /**
+     * 创建服务注册与发现的实例
+     * @param registryAddress
+     * @param registryType
+     * @return
+     */
+    private RegistryService getRegistryService(String registryAddress, String registryType) {
+        //TODO 后续拓展支持SPI
+        RegistryService registryService = null;
+        try {
+            registryService = new ZookeeperRegistryService();
+            registryService.init(new RegistryConfig(registryAddress, registryType));
+        } catch (Exception e) {
+            log.error("registry service init error",e);
+        }
+        return registryService;
+    }
+
     public <T> T create(Class<T> interfaceClass) {
         ProxyFactory proxyFactory = new JdkProxyFactory<T>();
         proxyFactory.init(new ProxyConfig(interfaceClass,serviceVersion,
-                serviceGroup, timeout, RpcConsumer.getInstance(),
+                serviceGroup, timeout,registryService,RpcConsumer.getInstance(),
                 serializationType, async, oneway));
         return proxyFactory.getProxy(interfaceClass);
     }
 
     public <T> IAsyncObjectProxy createAsync(Class<T> interfaceClass) {
-        return new ObjectProxy<T>(interfaceClass, serviceVersion, serviceGroup, serializationType, timeout, RpcConsumer.getInstance(), async, oneway);
+        return new ObjectProxy<T>(interfaceClass, serviceVersion, serviceGroup,
+                serializationType, timeout,registryService, RpcConsumer.getInstance(), async, oneway);
     }
     public void shutdown() {
         RpcConsumer.getInstance().close();

@@ -15,10 +15,10 @@
  */
 package lyzzcw.work.rpc.proxy.api.config;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lyzzcw.work.rpc.proxy.api.consumer.Consumer;
+import lyzzcw.work.rpc.registry.api.RegistryService;
 
 import java.io.Serializable;
 
@@ -48,7 +48,10 @@ public class ProxyConfig<T> implements Serializable {
      * 超时时间
      */
     private long timeout;
-
+    /**
+     * 服务注册与发现接口
+     */
+    private RegistryService registryService;
     /**
      * 消费者接口
      */
@@ -70,12 +73,13 @@ public class ProxyConfig<T> implements Serializable {
     private boolean oneway;
 
     public ProxyConfig(Class<T> clazz, String serviceVersion, String serviceGroup,
-                       long timeout, Consumer consumer, String serializationType,
-                       boolean async, boolean oneway) {
+                       long timeout,RegistryService registryService, Consumer consumer,
+                       String serializationType, boolean async, boolean oneway) {
         this.clazz = clazz;
         this.serviceVersion = serviceVersion;
         this.serviceGroup = serviceGroup;
         this.timeout = timeout;
+        this.registryService = registryService;
         this.consumer = consumer;
         this.serializationType = serializationType;
         this.async = async;
