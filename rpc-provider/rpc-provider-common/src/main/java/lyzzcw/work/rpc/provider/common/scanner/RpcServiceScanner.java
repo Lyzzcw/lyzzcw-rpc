@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.annotation.RpcService;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
 import lyzzcw.work.rpc.common.scanner.ClassScanner;
+import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
+import lyzzcw.work.rpc.registry.api.RegistryService;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
@@ -22,7 +24,8 @@ public class RpcServiceScanner extends ClassScanner {
     /**
      * 扫描指定包下的类，并筛选使用@RpcService注解标注的类
      */
-    public static Map<String,Object> doScannerWithRpcServiceAnnotationFilterAndRegistryService(String scanPackage) throws Exception {
+    public static Map<String,Object> doScannerWithRpcServiceAnnotationFilterAndRegistryService(
+            String host, int port, String scanPackage, RegistryService registryService) throws Exception {
         Map<String,Object> handlerMap = new HashMap<String,Object>();
         List<String> classNameList = getClassNameList(scanPackage,true);
         if(CollectionUtils.isEmpty(classNameList)){
@@ -34,10 +37,14 @@ public class RpcServiceScanner extends ClassScanner {
                 RpcService rpcService = clazz.getAnnotation(RpcService.class);
                 if(null != rpcService){
                     //优先使用interfaceClass, interfaceClass的name为空，再使用interfaceClassName
-                    //TODO 后续向注册中心注册元数据
-                    //handlerMap的key先简单存储为serviceName+version+group
                     String serviceName = getServiceName(rpcService);
-                    handlerMap.put(RpcServiceHelper.buildServiceKey(serviceName, rpcService.version(), rpcService.group()), clazz.newInstance());
+                    String serviceVersion = rpcService.version();
+                    String serviceGroup = rpcService.group();
+                    //向注册中心注册元数据
+                    ServiceMeta serviceMeta = new ServiceMeta(serviceName,serviceVersion,serviceGroup,host,port);
+                    registryService.register(serviceMeta);
+                    //handlerMap的key先简单存储为serviceName+version+group
+                    handlerMap.put(RpcServiceHelper.buildServiceKey(serviceName, serviceVersion, serviceGroup), clazz.newInstance());
                 }
             }catch (Exception e){
                 log.error("scan classes throws exception",e);

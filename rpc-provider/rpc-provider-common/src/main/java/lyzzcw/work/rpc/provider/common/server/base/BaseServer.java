@@ -13,6 +13,9 @@ import lyzzcw.work.rpc.codec.RpcDecoder;
 import lyzzcw.work.rpc.codec.RpcEncoder;
 import lyzzcw.work.rpc.provider.common.handler.RpcProviderHandler;
 import lyzzcw.work.rpc.provider.common.server.api.Server;
+import lyzzcw.work.rpc.registry.api.RegistryService;
+import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
+import lyzzcw.work.rpc.registry.zookeeper.ZookeeperRegistryService;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -30,19 +33,40 @@ public class BaseServer implements Server {
     protected Map<String, Object> handlerMap = new HashMap<String, Object>();
 
     //主机域名或者IP地址
-    private String host = "127.0.0.1";
+    protected String host = "127.0.0.1";
     //端口号
-    private int port = 27110;
+    protected int port = 27110;
     //reflect type
     private String reflectType;
+    //服务注册与发现的实例
+    protected RegistryService registryService;
 
-    public BaseServer(String serverAddress,String reflectType) {
+    public BaseServer(String serverAddress,String registryAddress,String registryType,String reflectType) {
         if (!StringUtils.isEmpty(serverAddress)){
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
             this.port = Integer.parseInt(serverArray[1]);
         }
         this.reflectType = reflectType;
+        this.registryService = this.getRegistryService(registryAddress,registryType);
+    }
+
+    /**
+     * 创建服务注册与发现的实例
+     * @param registryAddress
+     * @param registryType
+     * @return
+     */
+    private RegistryService getRegistryService(String registryAddress, String registryType) {
+        //TODO 后续拓展支持SPI
+        RegistryService registryService = null;
+        try {
+            registryService = new ZookeeperRegistryService();
+            registryService.init(new RegistryConfig(registryAddress, registryType));
+        } catch (Exception e) {
+            log.error("registry service init error",e);
+        }
+        return registryService;
     }
 
     @Override

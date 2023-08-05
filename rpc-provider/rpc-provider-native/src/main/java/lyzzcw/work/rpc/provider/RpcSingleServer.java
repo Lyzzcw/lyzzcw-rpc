@@ -13,11 +13,14 @@ import lyzzcw.work.rpc.provider.common.server.base.BaseServer;
 @Slf4j
 public class RpcSingleServer extends BaseServer {
 
-    public RpcSingleServer(String serverAddress,String scanPackage,String reflectType) {
+    public RpcSingleServer(String serverAddress,String registryAddress, String registryType,
+                           String scanPackage,String reflectType) {
         //调用父类构造方法
-        super(serverAddress,reflectType);
+        super(serverAddress,registryAddress,registryType,reflectType);
         try {
-            this.handlerMap = RpcServiceScanner.doScannerWithRpcServiceAnnotationFilterAndRegistryService(scanPackage);
+            this.handlerMap =
+                    RpcServiceScanner.doScannerWithRpcServiceAnnotationFilterAndRegistryService(
+                            this.host,this.port,scanPackage,this.registryService);
             if(log.isDebugEnabled()){
                 log.debug("RpcSingleServer handlerMap: {}",handlerMap);
             }
