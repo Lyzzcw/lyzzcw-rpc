@@ -2,7 +2,9 @@ package lyzzcw.work.rpc.consumer;
 
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.consumer.common.RpcConsumer;
+import lyzzcw.work.rpc.proxy.api.ProxyFactory;
 import lyzzcw.work.rpc.proxy.api.async.IAsyncObjectProxy;
+import lyzzcw.work.rpc.proxy.api.config.ProxyConfig;
 import lyzzcw.work.rpc.proxy.api.object.ObjectProxy;
 import lyzzcw.work.rpc.proxy.jdk.JdkProxyFactory;
 
@@ -47,8 +49,11 @@ public class RpcClient {
         this.oneway = oneway;
     }
     public <T> T create(Class<T> interfaceClass) {
-        JdkProxyFactory<T> jdkProxyFactory = new JdkProxyFactory<T>(serviceVersion, serviceGroup, serializationType, timeout, RpcConsumer.getInstance(), async, oneway);
-        return jdkProxyFactory.getProxy(interfaceClass);
+        ProxyFactory proxyFactory = new JdkProxyFactory<T>();
+        proxyFactory.init(new ProxyConfig(interfaceClass,serviceVersion,
+                serviceGroup, timeout, RpcConsumer.getInstance(),
+                serializationType, async, oneway));
+        return proxyFactory.getProxy(interfaceClass);
     }
 
     public <T> IAsyncObjectProxy createAsync(Class<T> interfaceClass) {
