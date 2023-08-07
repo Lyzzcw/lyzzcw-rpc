@@ -25,6 +25,13 @@
 
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-spi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- 序列化 begin -->
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
             <artifactId>rpc-serialization-jdk</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -35,8 +42,10 @@
         </dependency>
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>
-            <artifactId>rpc-spi</artifactId>
+            <artifactId>rpc-serialization-hessian2</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- 序列化 end -->
+
     </dependencies>
 </project>
