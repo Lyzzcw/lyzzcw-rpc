@@ -16,11 +16,15 @@
 package lyzzcw.work.rpc.serialization.api;
 
 
+import lyzzcw.work.rpc.constant.RpcConstants;
+import lyzzcw.work.rpc.spi.annotation.SPI;
+
 /**
  * @author lzy
  * @version 1.0.0
  * @description 序列化接口
  */
+@SPI(RpcConstants.SERIALIZATION_JDK)
 public interface Serialization {
 
     /**

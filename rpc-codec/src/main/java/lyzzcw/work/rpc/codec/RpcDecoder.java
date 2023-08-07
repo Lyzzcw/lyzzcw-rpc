@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.CharsetUtil;
+import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.common.utils.SerializationUtils;
 import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
@@ -29,12 +30,14 @@ import lyzzcw.work.rpc.protocol.response.RpcResponse;
 import lyzzcw.work.rpc.serialization.api.Serialization;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author lzy
  * @version 1.0.0
  * @description 实现RPC解码操作
  */
+@Slf4j
 public class RpcDecoder extends ByteToMessageDecoder implements RpcCodec {
 
     @Override
@@ -77,7 +80,8 @@ public class RpcDecoder extends ByteToMessageDecoder implements RpcCodec {
         header.setSerializationType(serializationType);
         header.setMsgLen(dataLength);
         //TODO Serialization是扩展点
-        Serialization serialization = getJdkSerialization();
+        Serialization serialization = getSerialization(serializationType);
+
         switch (msgTypeEnum) {
             case REQUEST:
                 RpcRequest request = serialization.deserialize(data,RpcRequest.class);

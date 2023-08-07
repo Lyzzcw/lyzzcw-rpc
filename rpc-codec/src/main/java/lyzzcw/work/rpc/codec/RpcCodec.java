@@ -3,6 +3,7 @@ package lyzzcw.work.rpc.codec;
 
 import lyzzcw.work.rpc.serialization.api.Serialization;
 import lyzzcw.work.rpc.serialization.jdk.JdkSerialization;
+import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
 
 /**
  * @author lzy
@@ -12,8 +13,13 @@ import lyzzcw.work.rpc.serialization.jdk.JdkSerialization;
  */
 public interface RpcCodec {
 
-    default Serialization getJdkSerialization(){
-        return new JdkSerialization();
+    /**
+     * 根据serializationType通过SPI获取序列化句柄
+     * @param serializationType 序列化方式
+     * @return Serialization对象
+     */
+    default Serialization getSerialization(String serializationType){
+        return ExtensionLoader.getExtension(Serialization.class, serializationType);
     }
 
 }

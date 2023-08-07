@@ -23,6 +23,8 @@ import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.header.RpcHeader;
 import lyzzcw.work.rpc.serialization.api.Serialization;
 
+import java.util.Optional;
+
 /**
  * @author lzy
  * @version 1.0.0
@@ -39,7 +41,7 @@ public class RpcEncoder extends MessageToByteEncoder<RpcProtocol<Object>> implem
         byteBuf.writeLong(header.getRequestId());
         String serializationType = header.getSerializationType();
         // TODO Serialization 是拓展点
-        Serialization serialization = getJdkSerialization();
+        Serialization serialization = getSerialization(serializationType);
         byteBuf.writeBytes(SerializationUtils.paddingString(serializationType).getBytes("UTF-8"));
         byte[] data = serialization.serialize(msg.getBody());
         byteBuf.writeInt(data.length);

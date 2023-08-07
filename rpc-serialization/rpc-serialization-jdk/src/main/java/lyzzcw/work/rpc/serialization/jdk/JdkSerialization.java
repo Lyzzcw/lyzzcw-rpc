@@ -18,6 +18,7 @@ package lyzzcw.work.rpc.serialization.jdk;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.common.exception.SerializerException;
 import lyzzcw.work.rpc.serialization.api.Serialization;
+import lyzzcw.work.rpc.spi.annotation.SPIClass;
 
 import java.io.*;
 
@@ -27,6 +28,7 @@ import java.io.*;
  * @description Jdk Serialization
  */
 @Slf4j
+@SPIClass
 public class JdkSerialization implements Serialization {
 
     @Override
