@@ -41,15 +41,15 @@ public final class ExtensionLoader<T> {
     private static final Logger LOG = LoggerFactory.getLogger(ExtensionLoader.class);
 
     private static final String SERVICES_DIRECTORY = "META-INF/services/";
-    private static final String LZY_DIRECTORY = "META-INF/lzy/";
-    private static final String LZY_DIRECTORY_EXTERNAL = "META-INF/lzy/external/";
-    private static final String LZY_DIRECTORY_INTERNAL = "META-INF/lzy/internal/";
+    private static final String RPC_DIRECTORY = "META-INF/rpc/";
+    private static final String RPC_DIRECTORY_EXTERNAL = "META-INF/rpc/external/";
+    private static final String RPC_DIRECTORY_INTERNAL = "META-INF/rpc/internal/";
 
     private static final String[] SPI_DIRECTORIES = new String[]{
             SERVICES_DIRECTORY,
-            LZY_DIRECTORY,
-            LZY_DIRECTORY_EXTERNAL,
-            LZY_DIRECTORY_INTERNAL
+            RPC_DIRECTORY,
+            RPC_DIRECTORY_EXTERNAL,
+            RPC_DIRECTORY_INTERNAL
     };
 
     private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();

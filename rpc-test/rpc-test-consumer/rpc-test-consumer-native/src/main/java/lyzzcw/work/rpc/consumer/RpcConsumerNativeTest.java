@@ -23,13 +23,11 @@ public class RpcConsumerNativeTest {
         RpcClient client = new RpcClient(
                 "127.0.0.1", RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
                 "1.0.0","lzy",
-                "jdk",3000,
+                "json",300000,
                 false,false);
         DemoService demoService = client.create(DemoService.class);
         String result = demoService.hello("lzy",29);
         log.info("result: " + result);
-        TimeUnit.SECONDS.sleep(3L);
-        client.shutdown();
     }
 
     @Test
@@ -37,12 +35,10 @@ public class RpcConsumerNativeTest {
         RpcClient client = new RpcClient(
                 "127.0.0.1", RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
                 "1.0.0","lzy",
-                "jdk",3000,false,false);
+                "json",3000,false,false);
         IAsyncObjectProxy proxy = client.createAsync(DemoService.class);
         RpcFuture rpcFuture = proxy.call("hello","lzy", new Integer(29));
         String result = (String) rpcFuture.get();
         log.info("result: " + result);
-        TimeUnit.SECONDS.sleep(3L);
-        client.shutdown();
     }
 }
