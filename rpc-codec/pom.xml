@@ -45,6 +45,11 @@
             <artifactId>rpc-serialization-hessian2</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-serialization-fst</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- 序列化 end -->
 
     </dependencies>
