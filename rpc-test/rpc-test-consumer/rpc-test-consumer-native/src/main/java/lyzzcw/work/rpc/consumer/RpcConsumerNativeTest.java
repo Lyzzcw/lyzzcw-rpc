@@ -23,7 +23,7 @@ public class RpcConsumerNativeTest {
         RpcClient client = new RpcClient(
                 "127.0.0.1", RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
                 "1.0.0","lzy",
-                "kryo",300000,
+                "protostuff",300000,
                 false,false);
         DemoService demoService = client.create(DemoService.class);
         String result = demoService.hello("lzy",29);
