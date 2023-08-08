@@ -42,6 +42,11 @@
             <artifactId>rpc-loadbalancer-round-robin-weight</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-loadbalancer-hash</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- loadbalancer end -->
     </dependencies>
 
