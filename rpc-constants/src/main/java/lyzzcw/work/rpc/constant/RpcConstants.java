@@ -58,6 +58,11 @@ public class RpcConstants {
     public static final String REFLECT_TYPE_BYTEBUDDY = "bytebuddy";
 
     /**
+     * REFLECT_TYPE_ASM
+     */
+    public static final String REFLECT_TYPE_ASM = "asm";
+
+    /**
      * JDK动态代理
      */
     public static final String PROXY_JDK = "jdk";

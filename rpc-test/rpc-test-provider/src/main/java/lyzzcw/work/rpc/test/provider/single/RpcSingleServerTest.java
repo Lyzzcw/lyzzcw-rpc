@@ -19,7 +19,7 @@ public class RpcSingleServerTest {
                 "127.0.0.1:2181",
                 RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
                 "lyzzcw.work.rpc.test",
-                RpcConstants.REFLECT_TYPE_BYTEBUDDY);
+                RpcConstants.REFLECT_TYPE_ASM);
         singleServer.startNettyServer();
     }
 

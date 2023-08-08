@@ -64,6 +64,11 @@
             <artifactId>rpc-reflect-bytebuddy</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-reflect-asm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- 反射 end-->
     </dependencies>
 </project>
