@@ -37,6 +37,11 @@
             <artifactId>rpc-proxy-bytebuddy</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-proxy-asm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- 动态代理 end-->
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>

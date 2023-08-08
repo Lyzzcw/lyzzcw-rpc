@@ -63,6 +63,10 @@ public class RpcConstants {
      * bytebuddy动态代理
      */
     public static final String PROXY_BYTEBUDDY = "bytebuddy";
+    /**
+     * asm动态代理
+     */
+    public static final String PROXY_ASM = "asm";
 
     /**
      * 初始化的方法
