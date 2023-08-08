@@ -145,6 +145,10 @@ public class RpcConstants {
      * 基于加权随机算法的负载均衡
      */
     public static final String SERVICE_LOAD_BALANCER_RANDOM_WEIGHT = "random_weight";
+    /**
+     * 基于轮询算法的负载均衡策略
+     */
+    public static final String SERVICE_LOAD_BALANCER_ROUND_ROBIN = "robin";
 
     /**
      * 增强型负载均衡前缀

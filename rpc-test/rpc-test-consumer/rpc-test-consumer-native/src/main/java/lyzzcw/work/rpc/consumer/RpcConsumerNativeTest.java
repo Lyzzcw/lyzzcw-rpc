@@ -22,7 +22,7 @@ public class RpcConsumerNativeTest {
         RpcClient client = new RpcClient(
                 "127.0.0.1",
                 RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
-                RpcConstants.SERVICE_LOAD_BALANCER_RANDOM_WEIGHT,
+                RpcConstants.SERVICE_LOAD_BALANCER_ROUND_ROBIN,
                 RpcConstants.PROXY_JAVASSIST,
                 "1.0.0",
                 "lzy",
@@ -40,7 +40,7 @@ public class RpcConsumerNativeTest {
         RpcClient client = new RpcClient(
                 "127.0.0.1",
                 RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
-                RpcConstants.SERVICE_LOAD_BALANCER_RANDOM,
+                RpcConstants.SERVICE_LOAD_BALANCER_ROUND_ROBIN,
                 RpcConstants.PROXY_JDK,
                 "1.0.0",
                 "lzy",

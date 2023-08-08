@@ -18,7 +18,7 @@ public class RpcSingleServerTest {
                 "127.0.0.1:27880",
                 "127.0.0.1:2181",
                 RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
-                RpcConstants.SERVICE_LOAD_BALANCER_RANDOM_WEIGHT,
+                RpcConstants.SERVICE_LOAD_BALANCER_ROUND_ROBIN,
                 "lyzzcw.work.rpc.test",
                 RpcConstants.REFLECT_TYPE_ASM);
         singleServer.startNettyServer();
