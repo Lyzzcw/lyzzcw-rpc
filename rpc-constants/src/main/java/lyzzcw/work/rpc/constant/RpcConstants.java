@@ -48,6 +48,11 @@ public class RpcConstants {
     public static final String REFLECT_TYPE_CGLIB = "cglib";
 
     /**
+     * REFLECT_TYPE_JAVASSIST
+     */
+    public static final String REFLECT_TYPE_JAVASSIST = "javassist";
+
+    /**
      * JDK动态代理
      */
     public static final String PROXY_JDK = "jdk";
