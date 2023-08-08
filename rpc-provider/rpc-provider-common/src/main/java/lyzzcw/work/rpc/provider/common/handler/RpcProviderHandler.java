@@ -6,18 +6,16 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
-import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcStatus;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
 import lyzzcw.work.rpc.protocol.header.RpcHeader;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.protocol.response.RpcResponse;
+import lyzzcw.work.rpc.reflect.api.ReflectInvoker;
+import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
 import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
-import net.sf.cglib.reflect.FastClass;
-import net.sf.cglib.reflect.FastMethod;
 
-import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -43,24 +41,25 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
     /**
      * 调用采用哪种类型调用真实方法
      */
-    private final String reflectType;
+    private ReflectInvoker reflectInvoker;
 
-    public RpcProviderHandler(String reflectType,Map<String,Object> handlerMap){
-        this.reflectType = reflectType;
+    public RpcProviderHandler(String reflectType, Map<String, Object> handlerMap) {
+        this.reflectInvoker = ExtensionLoader.getExtension(ReflectInvoker.class, reflectType);
         this.handlerMap = handlerMap;
     }
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RpcProtocol<RpcRequest> protocol) throws Exception {
         log.info("Rpc provider received:{}", JSONObject.toJSONString(protocol));
         log.info("handlerMap中存放的数据如下所示：");
-        handlerMap.forEach((k,v) -> {
+        handlerMap.forEach((k, v) -> {
             log.info(k + "=" + v);
         });
         concurrentThreadPool.submit(() -> {
             RpcHeader header = protocol.getHeader();
             RpcRequest request = protocol.getBody();
-            if(log.isDebugEnabled()){
-                log.debug("receive request: {}",header.getRequestId());
+            if (log.isDebugEnabled()) {
+                log.debug("receive request: {}", header.getRequestId());
             }
             //将header中的消息类型设置为响应类型的消息
             header.setMsgType((byte) RpcType.RESPONSE.getType());
@@ -72,25 +71,25 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
                 response.setAsync(request.isAsync());
                 response.setOneway(request.isOneway());
                 header.setStatus((byte) RpcStatus.SUCCESS.getCode());
-            }catch (Throwable t) {
+            } catch (Throwable t) {
                 response.setError(t.getMessage());
                 header.setStatus((byte) RpcStatus.FAIL.getCode());
-                log.error("rpc server handle request error",t);
+                log.error("rpc server handle request error", t);
             }
             responseRpcProtocol.setHeader(header);
             responseRpcProtocol.setBody(response);
             // 直接返回数据
             ctx.writeAndFlush(responseRpcProtocol).addListener(
                     (ChannelFutureListener) channelFuture -> {
-                        if(log.isDebugEnabled()){
-                            log.debug("send response for request:{}",header.getRequestId());
+                        if (log.isDebugEnabled()) {
+                            log.debug("send response for request:{}", header.getRequestId());
                         }
                     }
             );
         });
     }
 
-    private Object handle(RpcRequest request) throws Throwable{
+    private Object handle(RpcRequest request) throws Throwable {
         String serviceKey = RpcServiceHelper.buildServiceKey(request.getClassName(), request.getVersion(), request.getGroup());
         Object serviceBean = handlerMap.get(serviceKey);
         if (serviceBean == null) {
@@ -101,65 +100,22 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
         Class<?>[] parameterTypes = request.getParameterTypes();
         Object[] parameters = request.getParameters();
 
-        if(log.isDebugEnabled()){
-            log.debug("request service class name:{}",serviceClass.getName());
-            log.debug("request service method name:{}",methodName);
-            if (parameterTypes != null && parameterTypes.length > 0){
+        if (log.isDebugEnabled()) {
+            log.debug("request service class name:{}", serviceClass.getName());
+            log.debug("request service method name:{}", methodName);
+            if (parameterTypes != null && parameterTypes.length > 0) {
                 for (int i = 0; i < parameterTypes.length; ++i) {
-                    log.debug("request service parameter type:{}",parameterTypes[i].getName());
+                    log.debug("request service parameter type:{}", parameterTypes[i].getName());
                 }
             }
-            if (parameters != null && parameters.length > 0){
+            if (parameters != null && parameters.length > 0) {
                 for (int i = 0; i < parameters.length; ++i) {
-                    log.debug("request service parameters:{}",parameters[i].toString());
+                    log.debug("request service parameters:{}", parameters[i].toString());
                 }
             }
         }
-        switch (this.reflectType){
-            case RpcConstants.REFLECT_TYPE_JDK:
-                return invokeJdkMethod(serviceBean, serviceClass, methodName, parameterTypes, parameters);
-            case RpcConstants.REFLECT_TYPE_CGLIB:
-                return invokeCglibMethod(serviceBean, serviceClass, methodName, parameterTypes, parameters);
-            default:
-                throw new IllegalArgumentException("not support reflect type");
-        }
+        return this.reflectInvoker.invokeMethod(serviceBean,
+                serviceClass, methodName, parameterTypes, parameters);
     }
 
-    /**
-     * jdk reflect type
-     * @param serviceBean
-     * @param serviceClass
-     * @param methodName
-     * @param parameterTypes
-     * @param parameters
-     * @return
-     * @throws Throwable
-     */
-    private Object invokeJdkMethod(Object serviceBean, Class<?> serviceClass, String methodName, Class<?>[] parameterTypes, Object[] parameters) throws Throwable {
-        if(log.isDebugEnabled()){
-            log.debug("use jdk reflect type invoke method...");
-        }
-        Method method = serviceClass.getMethod(methodName, parameterTypes);
-        method.setAccessible(true);
-        return method.invoke(serviceBean, parameters);
-    }
-
-    /**
-     * cglib reflect type
-     * @param serviceBean
-     * @param serviceClass
-     * @param methodName
-     * @param parameterTypes
-     * @param parameters
-     * @return
-     * @throws Throwable
-     */
-    private Object invokeCglibMethod(Object serviceBean, Class<?> serviceClass, String methodName, Class<?>[] parameterTypes, Object[] parameters) throws Throwable {
-        if(log.isDebugEnabled()){
-            log.debug("use cglib reflect type invoke method...");
-        }
-        FastClass fastClass = FastClass.create(serviceClass);
-        FastMethod fastMethod = fastClass.getMethod(methodName,parameterTypes);
-        return fastMethod.invoke(serviceBean, parameters);
-    }
 }
