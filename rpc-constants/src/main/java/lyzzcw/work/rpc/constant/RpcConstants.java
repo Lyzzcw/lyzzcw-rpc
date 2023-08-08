@@ -59,6 +59,10 @@ public class RpcConstants {
      * cglib动态代理
      */
     public static final String PROXY_CGLIB = "cglib";
+    /**
+     * bytebuddy动态代理
+     */
+    public static final String PROXY_BYTEBUDDY = "bytebuddy";
 
     /**
      * 初始化的方法
