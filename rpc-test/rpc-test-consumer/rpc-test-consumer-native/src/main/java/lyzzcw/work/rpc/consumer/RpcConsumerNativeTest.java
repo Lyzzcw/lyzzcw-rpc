@@ -8,7 +8,6 @@ import lyzzcw.work.rpc.test.api.DemoService;
 import org.junit.Test;
 
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author lzy
@@ -21,23 +20,34 @@ public class RpcConsumerNativeTest {
     @Test
     public void test() throws InterruptedException {
         RpcClient client = new RpcClient(
-                "127.0.0.1", RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
-                "1.0.0","lzy",
-                "protostuff",300000,
-                false,false);
+                "127.0.0.1",
+                RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
+                RpcConstants.PROXY_JDK,
+                "1.0.0",
+                "lzy",
+                RpcConstants.SERIALIZATION_PROTOSTUFF,
+                300000,
+                false,
+                false);
         DemoService demoService = client.create(DemoService.class);
-        String result = demoService.hello("lzy",29);
+        String result = demoService.hello("lzy", 29);
         log.info("result: " + result);
     }
 
     @Test
     public void test1() throws InterruptedException, ExecutionException {
         RpcClient client = new RpcClient(
-                "127.0.0.1", RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
-                "1.0.0","lzy",
-                "json",3000,false,false);
+                "127.0.0.1",
+                RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
+                RpcConstants.PROXY_JDK,
+                "1.0.0",
+                "lzy",
+                "json",
+                3000,
+                false,
+                false);
         IAsyncObjectProxy proxy = client.createAsync(DemoService.class);
-        RpcFuture rpcFuture = proxy.call("hello","lzy", new Integer(29));
+        RpcFuture rpcFuture = proxy.call("hello", "lzy", new Integer(29));
         String result = (String) rpcFuture.get();
         log.info("result: " + result);
     }

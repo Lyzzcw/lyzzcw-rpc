@@ -10,6 +10,7 @@ import lyzzcw.work.rpc.proxy.jdk.JdkProxyFactory;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
 import lyzzcw.work.rpc.registry.zookeeper.ZookeeperRegistryService;
+import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
 
 /**
  * @author lzy
@@ -47,9 +48,13 @@ public class RpcClient {
      * 是否单向调用
      */
     private boolean oneway;
-    public RpcClient(String registryAddress, String registryType,String serviceVersion,
-                     String serviceGroup, String serializationType, long timeout,
-                     boolean async, boolean oneway) {
+    /**
+     * 动态代理方式
+     */
+    private String proxy;
+    public RpcClient(String registryAddress, String registryType,String proxy,
+                     String serviceVersion, String serviceGroup, String serializationType,
+                     long timeout, boolean async, boolean oneway) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.serviceGroup = serviceGroup;
@@ -57,6 +62,7 @@ public class RpcClient {
         this.async = async;
         this.oneway = oneway;
         this.registryService = this.getRegistryService(registryAddress, registryType);
+        this.proxy = proxy;
     }
 
     /**
@@ -78,7 +84,7 @@ public class RpcClient {
     }
 
     public <T> T create(Class<T> interfaceClass) {
-        ProxyFactory proxyFactory = new JdkProxyFactory<T>();
+        ProxyFactory proxyFactory = ExtensionLoader.getExtension(ProxyFactory.class,proxy);
         proxyFactory.init(new ProxyConfig(interfaceClass,serviceVersion,
                 serviceGroup, timeout,registryService,RpcConsumer.getInstance(),
                 serializationType, async, oneway));

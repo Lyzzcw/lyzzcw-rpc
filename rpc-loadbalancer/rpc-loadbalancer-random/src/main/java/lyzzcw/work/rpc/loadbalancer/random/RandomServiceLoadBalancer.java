@@ -18,8 +18,6 @@ package lyzzcw.work.rpc.loadbalancer.random;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.loadbalancer.api.ServiceLoadBalancer;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Random;

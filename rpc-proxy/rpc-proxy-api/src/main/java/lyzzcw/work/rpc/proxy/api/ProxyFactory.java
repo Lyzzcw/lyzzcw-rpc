@@ -16,13 +16,16 @@
 package lyzzcw.work.rpc.proxy.api;
 
 
+import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.proxy.api.config.ProxyConfig;
+import lyzzcw.work.rpc.spi.annotation.SPI;
 
 /**
  * @author lzy
  * @version 1.0.0
  * @description 代理工厂接口
  */
+@SPI(RpcConstants.RPC_REFERENCE_DEFAULT_PROXY)
 public interface ProxyFactory {
 
     /**
