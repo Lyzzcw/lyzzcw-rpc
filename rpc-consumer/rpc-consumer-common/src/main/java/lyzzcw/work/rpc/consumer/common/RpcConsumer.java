@@ -92,8 +92,8 @@ public class RpcConsumer implements Consumer {
     /**
      * 创建连接并返回RpcClientHandler
      */
-    private RpcConsumerHandler getRpcConsumerHandler(String serverAddress,int port){
-        ChannelFuture channelFuture = bootstrap.connect(serverAddress,port);
+    private RpcConsumerHandler getRpcConsumerHandler(String serverAddress,int port) throws InterruptedException {
+        ChannelFuture channelFuture = bootstrap.connect(serverAddress,port).sync();
         channelFuture.addListener((ChannelFutureListener) listener -> {
             if(listener.isSuccess()){
                 log.info("Successfully connected rpc server {} on port {}", serverAddress,port);

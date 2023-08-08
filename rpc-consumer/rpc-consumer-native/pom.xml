@@ -27,6 +27,11 @@
             <artifactId>rpc-proxy-cglib</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-proxy-javassist</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- 动态代理 end-->
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>
