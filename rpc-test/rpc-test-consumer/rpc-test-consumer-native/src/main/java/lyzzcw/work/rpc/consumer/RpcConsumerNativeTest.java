@@ -22,11 +22,11 @@ public class RpcConsumerNativeTest {
         RpcClient client = new RpcClient(
                 "127.0.0.1",
                 RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
-                RpcConstants.PROXY_JDK,
+                RpcConstants.PROXY_CGLIB,
                 "1.0.0",
                 "lzy",
                 RpcConstants.SERIALIZATION_PROTOSTUFF,
-                300000,
+                3000,
                 false,
                 false);
         DemoService demoService = client.create(DemoService.class);

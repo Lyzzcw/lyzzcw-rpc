@@ -16,11 +16,18 @@
             <artifactId>rpc-consumer-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- 动态代理 begin-->
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>
             <artifactId>rpc-proxy-jdk</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-proxy-cglib</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- 动态代理 end-->
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>
             <artifactId>rpc-registry-zookeeper</artifactId>

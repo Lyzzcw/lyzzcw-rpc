@@ -98,7 +98,7 @@ public class RpcConsumer implements Consumer {
             if(listener.isSuccess()){
                 log.info("Successfully connected rpc server {} on port {}", serverAddress,port);
             }else{
-                log.info("Failure connecting rpc server {} on port {}", serverAddress,port);
+                log.error("Failure connecting rpc server {} on port {}", serverAddress,port);
                 channelFuture.cause().printStackTrace();
                 eventLoopGroup.shutdownGracefully();
             }
