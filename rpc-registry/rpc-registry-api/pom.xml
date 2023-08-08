@@ -16,6 +16,11 @@
             <artifactId>rpc-protocol</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-spi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <properties>

@@ -52,31 +52,33 @@ public class RpcClient {
      * 动态代理方式
      */
     private String proxy;
-    public RpcClient(String registryAddress, String registryType,String proxy,
-                     String serviceVersion, String serviceGroup, String serializationType,
-                     long timeout, boolean async, boolean oneway) {
+    public RpcClient(String registryAddress, String registryType,String registryLoadBalanceType,
+                     String proxy, String serviceVersion, String serviceGroup,
+                     String serializationType, long timeout, boolean async,
+                     boolean oneway) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.serviceGroup = serviceGroup;
         this.serializationType = serializationType;
         this.async = async;
         this.oneway = oneway;
-        this.registryService = this.getRegistryService(registryAddress, registryType);
+        this.registryService = this.getRegistryService(registryAddress,
+                registryType,registryLoadBalanceType);
         this.proxy = proxy;
     }
 
     /**
      * 创建服务注册与发现的实例
-     * @param registryAddress
-     * @param registryType
-     * @return
      */
-    private RegistryService getRegistryService(String registryAddress, String registryType) {
+    private RegistryService getRegistryService(String registryAddress,
+                                               String registryType,
+                                               String registryLoadBalanceType) {
         //TODO 后续拓展支持SPI
         RegistryService registryService = null;
         try {
             registryService = new ZookeeperRegistryService();
-            registryService.init(new RegistryConfig(registryAddress, registryType));
+            registryService.init(new RegistryConfig(registryAddress,
+                    registryType,registryLoadBalanceType));
         } catch (Exception e) {
             log.error("registry service init error",e);
         }

@@ -22,6 +22,7 @@ import lyzzcw.work.rpc.loadbalancer.random.RandomServiceLoadBalancer;
 import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
+import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -63,7 +64,8 @@ public class ZookeeperRegistryService implements RegistryService {
                 .basePath(ZK_BASE_PATH)
                 .build();
         this.serviceDiscovery.start();
-        this.serviceLoadBalancer = new RandomServiceLoadBalancer<>();
+        this.serviceLoadBalancer = ExtensionLoader.getExtension(
+                ServiceLoadBalancer.class,registryConfig.getRegistryLoadBalanceType());
     }
 
     @Override

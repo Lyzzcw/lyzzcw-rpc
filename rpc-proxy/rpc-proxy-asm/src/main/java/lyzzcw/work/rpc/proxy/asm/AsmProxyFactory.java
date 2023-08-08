@@ -24,7 +24,7 @@ import lyzzcw.work.rpc.spi.annotation.SPIClass;
 
 
 /**
- * @author binghe(公众号 ： 冰河技术)
+ * @author lzy
  * @version 1.0.0
  * @description ASM动态代理
  */
