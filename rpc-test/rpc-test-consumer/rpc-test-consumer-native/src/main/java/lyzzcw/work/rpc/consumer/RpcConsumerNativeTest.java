@@ -22,7 +22,7 @@ public class RpcConsumerNativeTest {
         RpcClient client = new RpcClient(
                 "127.0.0.1",
                 RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
-                RpcConstants.SERVICE_LOAD_BALANCER_HASH,
+                RpcConstants.SERVICE_LOAD_BALANCER_HASH_WEIGHT,
                 RpcConstants.PROXY_JAVASSIST,
                 "1.0.0",
                 "lzy",
