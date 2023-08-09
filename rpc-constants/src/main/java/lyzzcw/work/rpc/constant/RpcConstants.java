@@ -134,10 +134,6 @@ public class RpcConstants {
      */
     public static final String SERIALIZATION_KRYO = "kryo";
     /**
-     * 基于ZK的一致性Hash负载均衡
-     */
-    public static final String SERVICE_LOAD_BALANCER_ZKCONSISTENTHASH = "zkconsistenthash";
-    /**
      * 基于随机算法的负载均衡
      */
     public static final String SERVICE_LOAD_BALANCER_RANDOM = "random";
@@ -169,6 +165,10 @@ public class RpcConstants {
      * 基于源ip地址加权hash算法的负载均衡策略
      */
     public static final String SERVICE_LOAD_BALANCER_SOURCEIP_HASH_WEIGHT = "sourceIp_weight";
+    /**
+     * 基于Zookeeper的一致性Hash的负载均衡策略
+     */
+    public static final String SERVICE_LOAD_BALANCER_ZK_CONSISTENTHASH = "zk_consistenthash";
     /**
      * 增强型负载均衡前缀
      */
