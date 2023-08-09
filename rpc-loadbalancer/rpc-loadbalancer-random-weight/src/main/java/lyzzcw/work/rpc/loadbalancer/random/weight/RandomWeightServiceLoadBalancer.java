@@ -32,7 +32,7 @@ import java.util.Random;
 @Slf4j
 public class RandomWeightServiceLoadBalancer<T> implements ServiceLoadBalancer<T> {
     @Override
-    public T select(List<T> servers, int hashCode) {
+    public T select(List<T> servers, int hashCode,String sourceIp) {
         if (log.isDebugEnabled()){
             log.info("Load balancing policy based on weighted random algorithm...");
         }

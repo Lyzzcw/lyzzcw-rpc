@@ -13,31 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lyzzcw.work.rpc.loadbalancer.hash;
+package lyzzcw.work.rpc.common.ip;
 
 import lombok.extern.slf4j.Slf4j;
-import lyzzcw.work.rpc.loadbalancer.api.ServiceLoadBalancer;
-import lyzzcw.work.rpc.spi.annotation.SPIClass;
 
-import java.util.List;
+import java.net.InetAddress;
 
 /**
  * @author lzy
  * @version 1.0.0
- * @description 基于Hash算法的负载均衡策略
+ * @description IP工具类
  */
-@SPIClass
 @Slf4j
-public class HashServiceLoadBalancer<T> implements ServiceLoadBalancer<T> {
-    @Override
-    public T select(List<T> servers, int hashCode,String sourceIp) {
-        if (log.isDebugEnabled()) {
-            log.debug("Load balancing strategy based on hash algorithm...");
+public class IpUtils {
+
+    public static InetAddress getLocalInetAddress()  {
+        try{
+            return InetAddress.getLocalHost();
+        }catch (Exception e){
+            log.error("get local ip address throws exception:", e);
         }
-        if (servers == null || servers.isEmpty()) {
-            return null;
-        }
-        int index = Math.abs(hashCode) % servers.size();
-        return servers.get(index);
+        return null;
+    }
+
+    public static String getLocalAddress(){
+        return getLocalInetAddress().toString();
+    }
+
+    public static String getLocalHostName(){
+        return getLocalInetAddress().getHostName();
+    }
+
+    public static String getLocalHostIp(){
+        return getLocalInetAddress().getHostAddress();
     }
 }

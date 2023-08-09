@@ -8,6 +8,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
+import lyzzcw.work.rpc.common.ip.IpUtils;
 import lyzzcw.work.rpc.consumer.common.handler.RpcConsumerHandler;
 import lyzzcw.work.rpc.consumer.common.helper.RpcConsumerHandlerHelper;
 import lyzzcw.work.rpc.consumer.common.initializer.RpcConsumerInitializer;
@@ -35,6 +36,8 @@ public class RpcConsumer implements Consumer {
     private final EventLoopGroup eventLoopGroup;
     //并发处理线程池
     private ConcurrentThreadPool concurrentThreadPool = ConcurrentThreadPool.getInstance(2,4);
+    //本地IP
+    private final String localIp;
 
     private RpcConsumer(){
         bootstrap = new Bootstrap();
@@ -42,6 +45,7 @@ public class RpcConsumer implements Consumer {
         bootstrap.group(eventLoopGroup)
                 .channel(NioSocketChannel.class)
                 .handler(new RpcConsumerInitializer(concurrentThreadPool));
+        localIp = IpUtils.getLocalHostIp();
     }
 
     //设置单例
@@ -71,7 +75,7 @@ public class RpcConsumer implements Consumer {
                 request.getClassName(),request.getVersion(),request.getGroup());
         Object[] params = request.getParameters();
         int invokeHashCode = (params == null || params.length <= 0) ? serviceKey.hashCode() : params[0].hashCode();
-        ServiceMeta serviceMeta = registryService.discovery(serviceKey, invokeHashCode);
+        ServiceMeta serviceMeta = registryService.discovery(serviceKey, invokeHashCode,this.localIp);
         if(serviceMeta != null){
             RpcConsumerHandler handler = RpcConsumerHandlerHelper.get(serviceMeta);
             //缓存中无RpcClientHandler

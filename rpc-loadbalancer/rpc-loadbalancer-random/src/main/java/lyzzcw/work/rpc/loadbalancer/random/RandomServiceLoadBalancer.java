@@ -33,7 +33,7 @@ import java.util.Random;
 public class RandomServiceLoadBalancer<T> implements ServiceLoadBalancer<T> {
 
     @Override
-    public T select(List<T> servers, int hashCode) {
+    public T select(List<T> servers, int hashCode,String sourceIp) {
         if(log.isDebugEnabled()){
             log.debug("Load balancing policy based on random");
         }

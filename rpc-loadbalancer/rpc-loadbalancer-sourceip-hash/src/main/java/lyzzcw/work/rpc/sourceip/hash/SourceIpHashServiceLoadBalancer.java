@@ -13,38 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lyzzcw.work.rpc.loadbalancer.hash.weight;
+package lyzzcw.work.rpc.sourceip.hash;
+
 
 
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.loadbalancer.api.ServiceLoadBalancer;
 import lyzzcw.work.rpc.spi.annotation.SPIClass;
-
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
 /**
  * @author lzy
  * @version 1.0.0
- * @description 基于加权Hash算法负载均衡策略
+ * @description 基于源IP地址Hash的负载均衡策略
  */
 @SPIClass
 @Slf4j
-public class HashWeightServiceLoadBalancer<T> implements ServiceLoadBalancer<T> {
+public class SourceIpHashServiceLoadBalancer<T> implements ServiceLoadBalancer<T> {
     @Override
-    public T select(List<T> servers, int hashCode,String sourceIp) {
+    public T select(List<T> servers, int hashCode, String sourceIp) {
         if(log.isDebugEnabled()) {
-            log.debug("Load balancing strategy based on weighted hash algorithm...");
+            log.debug("Load balancing policy based on source IP address hash...");
         }
         if (servers == null || servers.isEmpty()){
             return null;
         }
-        hashCode = Math.abs(hashCode);
-        int count = hashCode % servers.size();
-        if (count <= 0){
-            count = servers.size();
+        //传入的IP地址为空，则默认返回第一个服务实例
+        if (StringUtils.isEmpty(sourceIp)){
+            return servers.get(0);
         }
-        int index = hashCode % count;
-        return servers.get(index);
+        int resultHashCode = Math.abs(sourceIp.hashCode() + hashCode);
+        return servers.get(resultHashCode % servers.size());
     }
 }

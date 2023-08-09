@@ -42,7 +42,7 @@ public class ZookeeperRegistryTest {
     @Test
     public void testDiscovery() throws Exception {
         String serverName = RpcServiceHelper.buildServiceKey(serviceMeta.getServiceName(), serviceMeta.getServiceVersion(), serviceMeta.getServiceGroup());
-        ServiceMeta discovery =  this.registryService.discovery(serverName, "lzy".hashCode());
+        ServiceMeta discovery =  this.registryService.discovery(serverName, "lzy".hashCode(),null);
         log.info("discovery: " + discovery);
     }
     @Test
