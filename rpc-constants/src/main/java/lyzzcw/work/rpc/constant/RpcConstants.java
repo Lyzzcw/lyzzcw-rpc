@@ -173,6 +173,10 @@ public class RpcConstants {
      * 增强型负载均衡前缀
      */
     public static final String SERVICE_ENHANCED_LOAD_BALANCER_PREFIX = "enhanced_";
+    /**
+     * 最少连接数负载均衡策略
+     */
+    public static final String SERVICE_LOAD_BALANCER_LEAST_CONNECTIONS = "least_connections";
 
     /**
      * 默认权重
