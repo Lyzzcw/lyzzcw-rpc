@@ -51,32 +51,23 @@ public class ServiceMeta implements Serializable {
      */
     private String serviceGroup;
 
+    /**
+     * 服务权重
+     */
+    private int weight;
+
     public ServiceMeta() {
     }
 
-    public ServiceMeta(String serviceName, String serviceVersion, String serviceGroup, String serviceAddr, int servicePort) {
+    public ServiceMeta(String serviceName, String serviceVersion,
+                       String serviceAddr, int servicePort,
+                       String serviceGroup, int weight) {
         this.serviceName = serviceName;
         this.serviceVersion = serviceVersion;
         this.serviceAddr = serviceAddr;
         this.servicePort = servicePort;
         this.serviceGroup = serviceGroup;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(serviceName, serviceVersion, serviceAddr, servicePort, serviceGroup);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ServiceMeta serviceMeta = (ServiceMeta) o;
-        return Objects.equals(serviceName, serviceMeta.serviceName)
-                && Objects.equals(serviceVersion, serviceMeta.serviceVersion)
-                && Objects.equals(serviceAddr, serviceMeta.serviceAddr)
-                && servicePort == serviceMeta.servicePort
-                && Objects.equals(serviceGroup, serviceMeta.serviceGroup);
+        this.weight = weight;
     }
 
     public String getServiceName() {
@@ -119,6 +110,27 @@ public class ServiceMeta implements Serializable {
         this.serviceGroup = serviceGroup;
     }
 
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ServiceMeta that = (ServiceMeta) o;
+        return servicePort == that.servicePort && weight == that.weight && Objects.equals(serviceName, that.serviceName) && Objects.equals(serviceVersion, that.serviceVersion) && Objects.equals(serviceAddr, that.serviceAddr) && Objects.equals(serviceGroup, that.serviceGroup);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(serviceName, serviceVersion, serviceAddr, servicePort, serviceGroup, weight);
+    }
+
     @Override
     public String toString() {
         return "ServiceMeta{" +
@@ -127,6 +139,7 @@ public class ServiceMeta implements Serializable {
                 ", serviceAddr='" + serviceAddr + '\'' +
                 ", servicePort=" + servicePort +
                 ", serviceGroup='" + serviceGroup + '\'' +
+                ", weight=" + weight +
                 '}';
     }
 }

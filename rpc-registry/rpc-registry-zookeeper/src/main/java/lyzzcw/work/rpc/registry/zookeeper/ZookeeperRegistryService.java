@@ -22,8 +22,10 @@ import lyzzcw.work.rpc.loadbalancer.random.RandomServiceLoadBalancer;
 import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
+import lyzzcw.work.rpc.registry.zookeeper.helper.ServiceLoadBalancerHelper;
 import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -34,6 +36,7 @@ import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -51,7 +54,8 @@ public class ZookeeperRegistryService implements RegistryService {
 
     private ServiceDiscovery<ServiceMeta> serviceDiscovery;
     //负载均衡接口
-    private ServiceLoadBalancer<ServiceInstance<ServiceMeta>> serviceLoadBalancer;
+//    private ServiceLoadBalancer<ServiceInstance<ServiceMeta>> serviceLoadBalancer;
+    private ServiceLoadBalancer<ServiceMeta> serviceLoadBalancer;
 
     @Override
     public void init(RegistryConfig registryConfig) throws Exception {
@@ -95,12 +99,15 @@ public class ZookeeperRegistryService implements RegistryService {
     @Override
     public ServiceMeta discovery(String serviceName, int invokerHashCode,String sourceIp) throws Exception {
         Collection<ServiceInstance<ServiceMeta>> serviceInstances = serviceDiscovery.queryForInstances(serviceName);
-        ServiceInstance<ServiceMeta> instance =
-                serviceLoadBalancer.select((List<ServiceInstance<ServiceMeta>>) serviceInstances, invokerHashCode,sourceIp);
-        if (instance != null) {
-            return instance.getPayload();
-        }
-        return null;
+//        ServiceInstance<ServiceMeta> instance =
+//                serviceLoadBalancer.select((List<ServiceInstance<ServiceMeta>>) serviceInstances, invokerHashCode,sourceIp);
+//        if (instance != null) {
+//            return instance.getPayload();
+//        }
+        List<ServiceMeta> serviceMetas = ServiceLoadBalancerHelper.getServiceMetaListFromInstance(
+                new ArrayList<>(serviceInstances));
+        ServiceMeta instance = serviceLoadBalancer.select(serviceMetas, invokerHashCode,sourceIp);
+        return instance;
     }
 
     @Override

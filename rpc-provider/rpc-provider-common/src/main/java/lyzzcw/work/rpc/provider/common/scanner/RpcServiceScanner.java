@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.annotation.RpcService;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
 import lyzzcw.work.rpc.common.scanner.ClassScanner;
+import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,8 +41,10 @@ public class RpcServiceScanner extends ClassScanner {
                     String serviceName = getServiceName(rpcService);
                     String serviceVersion = rpcService.version();
                     String serviceGroup = rpcService.group();
+                    int weight = rpcService.weight();
                     //向注册中心注册元数据
-                    ServiceMeta serviceMeta = new ServiceMeta(serviceName,serviceVersion,serviceGroup,host,port);
+                    ServiceMeta serviceMeta = new ServiceMeta(serviceName,serviceVersion,
+                            host,port,serviceGroup,getWeight(weight));
                     registryService.register(serviceMeta);
                     //handlerMap的key先简单存储为serviceName+version+group
                     handlerMap.put(RpcServiceHelper.buildServiceKey(serviceName, serviceVersion, serviceGroup), clazz.newInstance());
@@ -67,5 +70,15 @@ public class RpcServiceScanner extends ClassScanner {
             serviceName = rpcService.interfaceClassName();
         }
         return serviceName;
+    }
+
+    private static int getWeight(int weight) {
+        if (weight < RpcConstants.SERVICE_WEIGHT_MIN){
+            weight = RpcConstants.SERVICE_WEIGHT_MIN;
+        }
+        if (weight > RpcConstants.SERVICE_WEIGHT_MAX){
+            weight = RpcConstants.SERVICE_WEIGHT_MAX;
+        }
+        return weight;
     }
 }

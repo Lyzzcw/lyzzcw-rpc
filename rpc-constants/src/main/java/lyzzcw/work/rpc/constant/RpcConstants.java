@@ -175,6 +175,10 @@ public class RpcConstants {
     public static final String SERVICE_ENHANCED_LOAD_BALANCER_PREFIX = "enhanced_";
 
     /**
+     * 默认权重
+     */
+    public static final int SERVICE_DEFAULT_WEIGHT = 0;
+    /**
      * 最小权重
      */
     public static final int SERVICE_WEIGHT_MIN = 1;

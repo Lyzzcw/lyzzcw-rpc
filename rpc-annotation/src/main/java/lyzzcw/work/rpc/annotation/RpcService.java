@@ -37,4 +37,10 @@ public @interface RpcService {
      * 服务分组，默认为空
      */
     String group() default RpcConstants.RPC_COMMON_DEFAULT_GROUP;
+
+
+    /**
+     * 服务权重
+     */
+    int weight() default RpcConstants.SERVICE_DEFAULT_WEIGHT;
 }

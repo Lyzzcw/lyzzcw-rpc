@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>rpc-loadbalancer-api</artifactId>
+    <artifactId>rpc-loadbalancer-random-weight-enhanced</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -19,17 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>
-            <artifactId>rpc-spi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>lyzzcw.work.rpc</groupId>
-            <artifactId>rpc-constants</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>lyzzcw.work.rpc</groupId>
-            <artifactId>rpc-protocol</artifactId>
+            <artifactId>rpc-loadbalancer-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
