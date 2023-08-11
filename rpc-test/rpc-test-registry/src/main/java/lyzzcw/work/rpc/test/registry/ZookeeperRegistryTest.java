@@ -46,7 +46,7 @@ public class ZookeeperRegistryTest {
         log.info("discovery: " + discovery);
     }
     @Test
-    public void testDestroy() throws IOException {
+    public void testDestroy() throws Exception {
         this.registryService.destroy();
     }
 }

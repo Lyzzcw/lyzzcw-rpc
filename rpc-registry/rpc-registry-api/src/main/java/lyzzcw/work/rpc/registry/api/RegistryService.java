@@ -62,7 +62,7 @@ public interface RegistryService {
 
     /**
      * 服务销毁
-     * @throws IOException 抛出异常
+     * @throws Exception 抛出异常
      */
-    void destroy() throws IOException;
+    void destroy() throws Exception;
 }

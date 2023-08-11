@@ -43,11 +43,19 @@
             <version>${project.version}</version>
         </dependency>
         <!-- 动态代理 end-->
+
+        <!-- registry start-->
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>
             <artifactId>rpc-registry-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-registry-nacos</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- registry end-->
     </dependencies>
 
     <properties>

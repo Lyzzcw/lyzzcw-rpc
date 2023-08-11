@@ -20,8 +20,8 @@ public class RpcConsumerNativeTest {
     @Test
     public void test() throws InterruptedException {
         RpcClient client = new RpcClient(
-                "127.0.0.1",
-                RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
+                "127.0.0.1:8848",
+                RpcConstants.REGISTRY_CENTER_NACOS,
                 RpcConstants.SERVICE_LOAD_BALANCER_LEAST_CONNECTIONS,
                 RpcConstants.PROXY_JAVASSIST,
                 "1.0.0",

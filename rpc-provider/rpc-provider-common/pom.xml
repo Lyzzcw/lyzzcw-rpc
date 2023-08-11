@@ -37,11 +37,19 @@
             <artifactId>rpc-registry-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- registry begin-->
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>
             <artifactId>rpc-registry-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-registry-nacos</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- registry end-->
 
         <!-- 反射 begin-->
         <dependency>

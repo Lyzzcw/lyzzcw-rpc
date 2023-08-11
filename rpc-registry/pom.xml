@@ -14,6 +14,7 @@
     <modules>
         <module>rpc-registry-api</module>
         <module>rpc-registry-zookeeper</module>
+        <module>rpc-registry-nacos</module>
     </modules>
 
     <properties>
