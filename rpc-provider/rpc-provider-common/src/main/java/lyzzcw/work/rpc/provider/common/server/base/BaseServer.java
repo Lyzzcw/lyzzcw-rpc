@@ -16,6 +16,7 @@ import lyzzcw.work.rpc.provider.common.server.api.Server;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
 import lyzzcw.work.rpc.registry.zookeeper.ZookeeperRegistryService;
+import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -66,7 +67,7 @@ public class BaseServer implements Server {
         //TODO 后续拓展支持SPI
         RegistryService registryService = null;
         try {
-            registryService = new ZookeeperRegistryService();
+            registryService = ExtensionLoader.getExtension(RegistryService.class,registryType);
             registryService.init(new RegistryConfig(registryAddress,
                     registryType,registryLoadBalanceType));
         } catch (Exception e) {

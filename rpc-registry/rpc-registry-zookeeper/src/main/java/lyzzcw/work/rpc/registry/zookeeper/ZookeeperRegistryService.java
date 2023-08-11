@@ -16,16 +16,15 @@
 package lyzzcw.work.rpc.registry.zookeeper;
 
 
+import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
 import lyzzcw.work.rpc.loadbalancer.api.ServiceLoadBalancer;
-import lyzzcw.work.rpc.loadbalancer.random.RandomServiceLoadBalancer;
 import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
 import lyzzcw.work.rpc.registry.zookeeper.helper.ServiceLoadBalancerHelper;
+import lyzzcw.work.rpc.spi.annotation.SPIClass;
 import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -34,18 +33,18 @@ import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
 
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Random;
 
 /**
  * @author lzy
  * @version 1.0.0
  * @description 基于Zookeeper的注册服务
  */
+@SPIClass
+@Slf4j
 public class ZookeeperRegistryService implements RegistryService {
 
     public static final int BASE_SLEEP_TIME_MS = 1000;
@@ -69,7 +68,10 @@ public class ZookeeperRegistryService implements RegistryService {
                 .build();
         this.serviceDiscovery.start();
         this.serviceLoadBalancer = ExtensionLoader.getExtension(
-                ServiceLoadBalancer.class,registryConfig.getRegistryLoadBalanceType());
+                ServiceLoadBalancer.class, registryConfig.getRegistryLoadBalanceType());
+        if (log.isDebugEnabled()) {
+            log.debug("zookeeper registry loaded successfully");
+        }
     }
 
     @Override
@@ -97,7 +99,7 @@ public class ZookeeperRegistryService implements RegistryService {
     }
 
     @Override
-    public ServiceMeta discovery(String serviceName, int invokerHashCode,String sourceIp) throws Exception {
+    public ServiceMeta discovery(String serviceName, int invokerHashCode, String sourceIp) throws Exception {
         Collection<ServiceInstance<ServiceMeta>> serviceInstances = serviceDiscovery.queryForInstances(serviceName);
 //        ServiceInstance<ServiceMeta> instance =
 //                serviceLoadBalancer.select((List<ServiceInstance<ServiceMeta>>) serviceInstances, invokerHashCode,sourceIp);
@@ -106,7 +108,7 @@ public class ZookeeperRegistryService implements RegistryService {
 //        }
         List<ServiceMeta> serviceMetas = ServiceLoadBalancerHelper.getServiceMetaListFromInstance(
                 new ArrayList<>(serviceInstances));
-        ServiceMeta instance = serviceLoadBalancer.select(serviceMetas, invokerHashCode,sourceIp);
+        ServiceMeta instance = serviceLoadBalancer.select(serviceMetas, invokerHashCode, sourceIp);
         return instance;
     }
 

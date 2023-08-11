@@ -15,8 +15,10 @@
  */
 package lyzzcw.work.rpc.registry.api;
 
+import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
+import lyzzcw.work.rpc.spi.annotation.SPI;
 
 import java.io.IOException;
 
@@ -25,6 +27,7 @@ import java.io.IOException;
  * @version 1.0.0
  * @description
  */
+@SPI(RpcConstants.REGISTRY_CENTER_ZOOKEEPER)
 public interface RegistryService {
 
     /**

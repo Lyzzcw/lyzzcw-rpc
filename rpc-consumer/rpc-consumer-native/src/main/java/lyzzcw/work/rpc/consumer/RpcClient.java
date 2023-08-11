@@ -76,7 +76,7 @@ public class RpcClient {
         //TODO 后续拓展支持SPI
         RegistryService registryService = null;
         try {
-            registryService = new ZookeeperRegistryService();
+            registryService = ExtensionLoader.getExtension(RegistryService.class,registryType);
             registryService.init(new RegistryConfig(registryAddress,
                     registryType,registryLoadBalanceType));
         } catch (Exception e) {
