@@ -26,12 +26,14 @@ import lyzzcw.work.rpc.loadbalancer.api.ServiceLoadBalancer;
 import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
+import lyzzcw.work.rpc.registry.nacos.helper.NacosUrlHelper;
 import lyzzcw.work.rpc.spi.annotation.SPIClass;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -50,7 +52,8 @@ public class NacosRegistryService implements RegistryService {
 
     @Override
     public void init(RegistryConfig registryConfig) throws Exception {
-        namingService = NamingFactory.createNamingService(registryConfig.getRegistryAddr());
+        namingService = NamingFactory.createNamingService(
+                NacosUrlHelper.url2Properties(registryConfig.getRegistryAddr()));
         if (log.isDebugEnabled()) {
             log.debug("nacos registry loaded successfully");
         }
