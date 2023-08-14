@@ -72,7 +72,7 @@ public class ConsumerConnectionManager {
                            if(ConsumerChannelCache.incPendingPong(channel)){
                                log.warn("pending heartbeat message pong over limit:{}", channel.id().toString());
                                //重连
-                               RpcConsumer.getInstance(-1,-1).reconnect(channel);
+                               RpcConsumer.getInstance(-1,-1,-1,-1).reconnect(channel);
                            }
                        }
                );

@@ -10,6 +10,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
 import lyzzcw.work.rpc.common.ip.IpUtils;
+import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.consumer.common.handler.RpcConsumerHandler;
 import lyzzcw.work.rpc.consumer.common.helper.RpcConsumerHandlerHelper;
 import lyzzcw.work.rpc.consumer.common.initializer.RpcConsumerInitializer;
@@ -48,6 +49,10 @@ public class RpcConsumer implements Consumer {
     private int heartbeatInterval = 30000;
     //扫描并移除空闲连接时间，默认60秒
     private int scanNotActiveChannelInterval = 60000;
+    //重试间隔时间
+    private int retryInterval = 1000;
+    //重试次数
+    private int retryTimes = 3;
 
     private void startHeartbeat() {
         executorService = Executors.newScheduledThreadPool(2);
@@ -63,7 +68,8 @@ public class RpcConsumer implements Consumer {
         }, 3, heartbeatInterval, TimeUnit.MILLISECONDS);
     }
 
-    private RpcConsumer(int heartbeatInterval,int scanNotActiveChannelInterval){
+    private RpcConsumer(int heartbeatInterval,int scanNotActiveChannelInterval,
+                        int retryInterval,int retryTimes){
         bootstrap = new Bootstrap();
         eventLoopGroup = new NioEventLoopGroup(4);
         bootstrap.group(eventLoopGroup)
@@ -78,15 +84,19 @@ public class RpcConsumer implements Consumer {
         }
         //开启心跳
         this.startHeartbeat();
+        this.retryInterval = retryInterval <= 0 ? RpcConstants.DEFAULT_RETRY_INTERVAL : retryInterval;
+        this.retryTimes = retryTimes <= 0 ? RpcConstants.DEFAULT_RETRY_TIMES : retryTimes;
     }
 
     //设置单例
     private static volatile RpcConsumer instance;
-    public static RpcConsumer getInstance(int heartbeatInterval,int scanNotActiveChannelInterval){
+    public static RpcConsumer getInstance(int heartbeatInterval,int scanNotActiveChannelInterval,
+                                            int retryInterval,int retryTimes){
         if(instance == null){
             synchronized(RpcConsumer.class){
                 if(instance == null){
-                    instance = new RpcConsumer(heartbeatInterval,scanNotActiveChannelInterval);
+                    instance = new RpcConsumer(heartbeatInterval,scanNotActiveChannelInterval,
+                            retryInterval,retryTimes);
                 }
             }
         }
@@ -134,7 +144,7 @@ public class RpcConsumer implements Consumer {
                 request.getClassName(),request.getVersion(),request.getGroup());
         Object[] params = request.getParameters();
         int invokeHashCode = (params == null || params.length <= 0) ? serviceKey.hashCode() : params[0].hashCode();
-        ServiceMeta serviceMeta = registryService.discovery(serviceKey, invokeHashCode,this.localIp);
+        ServiceMeta serviceMeta = this.getServiceMeta(registryService, serviceKey, invokeHashCode);
         if(serviceMeta != null){
             RpcConsumerHandler handler = RpcConsumerHandlerHelper.get(serviceMeta);
             //缓存中无RpcClientHandler
@@ -171,4 +181,36 @@ public class RpcConsumer implements Consumer {
         });
         return channelFuture.channel().pipeline().get(RpcConsumerHandler.class);
     }
+
+    /**
+     * 获取服务提供者元数据
+     * @param registryService
+     * @param serviceKey
+     * @param invokerHashCode
+     * @return
+     * @throws Exception
+     */
+    private ServiceMeta getServiceMeta(RegistryService registryService, String serviceKey, int invokerHashCode) throws Exception {
+        //首次获取服务元数据信息，如果获取到，则直接返回，否则进行重试
+        if(log.isDebugEnabled()){
+            log.debug("Get the service provider metadata...");
+        }
+        ServiceMeta serviceMeta = registryService.discovery(serviceKey, invokerHashCode, localIp);
+        //启动重试机制
+        if (serviceMeta == null){
+            for (int i = 1; i <= retryTimes; i++){
+                log.warn("Get service provider metadata [{}] retry for the first time...", i);
+                serviceMeta = registryService.discovery(serviceKey, invokerHashCode, localIp);
+                if (serviceMeta != null){
+                    break;
+                }
+                Thread.sleep(retryInterval);
+            }
+        }
+        if(serviceMeta == null){
+            log.warn("Failed to get service provider metadata");
+        }
+        return serviceMeta;
+    }
+
 }
