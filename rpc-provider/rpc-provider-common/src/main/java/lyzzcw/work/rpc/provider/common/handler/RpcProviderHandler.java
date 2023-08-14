@@ -1,10 +1,12 @@
 package lyzzcw.work.rpc.provider.common.handler;
 
 import com.alibaba.fastjson.JSONObject;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
 import lyzzcw.work.rpc.constant.RpcConstants;
@@ -73,6 +75,21 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx,cause);
         ProviderChannelCache.remove(ctx.channel());
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        //如果是IdleStateEvent事件
+        if (evt instanceof IdleStateEvent){
+            Channel channel = ctx.channel();
+            try{
+                log.info("IdleStateEvent triggered, close channel " + channel);
+                channel.close();
+            }finally {
+                channel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+            }
+        }
+        super.userEventTriggered(ctx, evt);
     }
 
     @Override

@@ -8,9 +8,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.codec.RpcDecoder;
 import lyzzcw.work.rpc.codec.RpcEncoder;
+import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.provider.common.handler.RpcProviderHandler;
 import lyzzcw.work.rpc.provider.common.manager.ProviderConnectionManager;
 import lyzzcw.work.rpc.provider.common.server.api.Server;
@@ -122,9 +124,24 @@ public class BaseServer implements Server {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
 
-                            ch.pipeline().addLast(new RpcDecoder());
-                            ch.pipeline().addLast(new RpcEncoder());
-                            ch.pipeline().addLast(new RpcProviderHandler
+                            ch.pipeline().addLast(RpcConstants.CODEC_DECODER,new RpcDecoder());
+                            ch.pipeline().addLast(RpcConstants.CODEC_ENCODER,new RpcEncoder());
+                            /**
+                             * Netty中的IdleStateHandler对象本质上是一个Handler处理器，配置在Netty的责任链里面，当发送请求或者收到响应时，都会经过该对象处理。
+                             * 在双方通讯开始后该对象会创建一些空闲检测定时器，用于检测读事件（收到请求会触发读事件）和写事件（连接、发送请求会触发写事件）。
+                             * 当在指定的空闲时间内没有收到读事件或写事件，便会触发超时事件，然后IdleStateHandler将超时事件交给责任链里面的下一个Handler。
+                             *
+                             * 如果是在服务提供者端，检测到超时事件，可以直接关闭超时的连接。
+                             * 如果是在服务消费者端，检测到超时事件，可以构造一个心跳请求对象，向服务提供者发起心跳数据。
+                             *
+                             * readerIdleTime：读空闲超时检测定时任务会在每readerIdleTime时间内启动一次，检测在readerIdleTime内是否发生过读事件，如果没有发生过，则触发读超时事件READER_IDLE_STATE_EVENT，并将超时事件交给NettyClientHandler处理。如果为0，则不创建定时任务。
+                             * writerIdleTime：与readerIdleTime作用类似，只不过该参数定义的是写事件。
+                             * allIdleTime：同时检测读事件和写事件，如果在allIdleTime时间内即没有发生过读事件，也没有发生过写事件，则触发超时事件ALL_IDLE_STATE_EVENT。
+                             * unit：表示前面三个参数的单位，就上面代码来说，表示的是毫秒。
+                             */
+                            ch.pipeline().addLast(RpcConstants.CODEC_SERVER_IDLE_HANDLER,
+                                    new IdleStateHandler(0, 0, heartbeatInterval, TimeUnit.MILLISECONDS));
+                            ch.pipeline().addLast(RpcConstants.CODEC_HANDLER,new RpcProviderHandler
                                     (reflectType, handlerMap));
                         }
                     })

@@ -6,6 +6,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleStateEvent;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.constant.RpcConstants;
@@ -15,6 +16,7 @@ import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcStatus;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
 import lyzzcw.work.rpc.protocol.header.RpcHeader;
+import lyzzcw.work.rpc.protocol.header.RpcHeaderFactory;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.protocol.response.RpcResponse;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
@@ -66,6 +68,22 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx,cause);
         ConsumerChannelCache.remove(ctx.channel());
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent){
+            //发送一次心跳数据
+            RpcHeader header = RpcHeaderFactory.getRequestHeader(RpcConstants.SERIALIZATION_PROTOSTUFF, RpcType.HEARTBEAT_CONSUMER_TO_PROVIDER_PING.getType());
+            RpcProtocol<RpcRequest> requestRpcProtocol = new RpcProtocol<RpcRequest>();
+            RpcRequest rpcRequest = new RpcRequest();
+            rpcRequest.setParameters(new Object[]{RpcConstants.HEARTBEAT_PING});
+            requestRpcProtocol.setHeader(header);
+            requestRpcProtocol.setBody(rpcRequest);
+            ctx.writeAndFlush(requestRpcProtocol);
+        }else {
+            super.userEventTriggered(ctx, evt);
+        }
     }
 
     @Override
