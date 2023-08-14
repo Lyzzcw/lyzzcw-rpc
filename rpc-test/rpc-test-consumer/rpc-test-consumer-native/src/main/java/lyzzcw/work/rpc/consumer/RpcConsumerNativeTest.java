@@ -31,7 +31,7 @@ public class RpcConsumerNativeTest {
                 RpcConstants.SERIALIZATION_PROTOSTUFF,
                 3000,
                 false,
-                false);
+                false,5000,-1);
         DemoService demoService = client.create(DemoService.class);
         String result = demoService.hello("lzy", 29);
         log.info("result: " + result);
@@ -49,7 +49,7 @@ public class RpcConsumerNativeTest {
                 RpcConstants.SERIALIZATION_PROTOSTUFF,
                 3000,
                 false,
-                false);
+                false,-1,-1);
         DemoService demoService = client.create(DemoService.class);
         String result = demoService.hello("lzy", 29);
         log.info("result: " + result);
@@ -69,7 +69,7 @@ public class RpcConsumerNativeTest {
                 "json",
                 3000,
                 false,
-                false);
+                false,-1,-1);
         IAsyncObjectProxy proxy = client.createAsync(DemoService.class);
         RpcFuture rpcFuture = proxy.call("hello", "lzy", new Integer(29));
         String result = (String) rpcFuture.get();

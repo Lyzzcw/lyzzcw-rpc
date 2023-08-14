@@ -26,7 +26,7 @@ public class RpcConsumerHandlerTest {
 
     @Test
     public void testSync() throws Exception {
-        RpcConsumer rpcConsumer = RpcConsumer.getInstance();
+        RpcConsumer rpcConsumer = RpcConsumer.getInstance(-1,-1);
         RpcFuture future = rpcConsumer.sendRequest(getRpcRequestProtocol(),new ZookeeperRegistryService());
         future.addCallback(new AsyncRpcCallback() {
             @Override
@@ -46,7 +46,7 @@ public class RpcConsumerHandlerTest {
 
     @Test
     public void testAsync() throws Exception {
-        RpcConsumer rpcConsumer = RpcConsumer.getInstance();
+        RpcConsumer rpcConsumer = RpcConsumer.getInstance(-1,-1);
         rpcConsumer.sendRequest(getRpcRequestProtocol(),new ZookeeperRegistryService());
         RpcFuture future = RpcContext.getContext().getRpcFuture();
         log.info("received rpc response:{}", future.get());
@@ -56,7 +56,7 @@ public class RpcConsumerHandlerTest {
 
     @Test
     public void testOneway() throws Exception {
-        RpcConsumer rpcConsumer = RpcConsumer.getInstance();
+        RpcConsumer rpcConsumer = RpcConsumer.getInstance(-1,-1);
         rpcConsumer.sendRequest(getRpcRequestProtocol(),new ZookeeperRegistryService());
         log.info("oneway none need response");
         TimeUnit.SECONDS.sleep(2L);

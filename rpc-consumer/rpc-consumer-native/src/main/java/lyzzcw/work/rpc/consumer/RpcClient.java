@@ -52,10 +52,18 @@ public class RpcClient {
      * 动态代理方式
      */
     private String proxy;
+    /**
+     * 心跳间隔时间，默认30秒
+     */
+    private int heartbeatInterval;
+    /**
+     * 扫描空闲连接时间，默认60秒
+     */
+    private int scanNotActiveChannelInterval;
     public RpcClient(String registryAddress, String registryType,String registryLoadBalanceType,
                      String proxy, String serviceVersion, String serviceGroup,
                      String serializationType, long timeout, boolean async,
-                     boolean oneway) {
+                     boolean oneway, int heartbeatInterval, int scanNotActiveChannelInterval) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.serviceGroup = serviceGroup;
@@ -65,6 +73,8 @@ public class RpcClient {
         this.registryService = this.getRegistryService(registryAddress,
                 registryType,registryLoadBalanceType);
         this.proxy = proxy;
+        this.heartbeatInterval = heartbeatInterval;
+        this.scanNotActiveChannelInterval = scanNotActiveChannelInterval;
     }
 
     /**
@@ -88,16 +98,19 @@ public class RpcClient {
     public <T> T create(Class<T> interfaceClass) {
         ProxyFactory proxyFactory = ExtensionLoader.getExtension(ProxyFactory.class,proxy);
         proxyFactory.init(new ProxyConfig(interfaceClass,serviceVersion,
-                serviceGroup, timeout,registryService,RpcConsumer.getInstance(),
+                serviceGroup, timeout,registryService,
+                RpcConsumer.getInstance(heartbeatInterval, scanNotActiveChannelInterval),
                 serializationType, async, oneway));
         return proxyFactory.getProxy(interfaceClass);
     }
 
     public <T> IAsyncObjectProxy createAsync(Class<T> interfaceClass) {
         return new ObjectProxy<T>(interfaceClass, serviceVersion, serviceGroup,
-                serializationType, timeout,registryService, RpcConsumer.getInstance(), async, oneway);
+                serializationType, timeout,registryService,
+                RpcConsumer.getInstance(heartbeatInterval, scanNotActiveChannelInterval),
+                async, oneway);
     }
     public void shutdown() {
-        RpcConsumer.getInstance().close();
+        RpcConsumer.getInstance(heartbeatInterval, scanNotActiveChannelInterval).close();
     }
 }

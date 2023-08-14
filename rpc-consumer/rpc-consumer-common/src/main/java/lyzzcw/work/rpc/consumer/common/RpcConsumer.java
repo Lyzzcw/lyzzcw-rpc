@@ -22,9 +22,6 @@ import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,30 +40,6 @@ public class RpcConsumer implements Consumer {
     private ConcurrentThreadPool concurrentThreadPool = ConcurrentThreadPool.getInstance(2,4);
     //本地IP
     private final String localIp;
-
-    private RpcConsumer(){
-        bootstrap = new Bootstrap();
-        eventLoopGroup = new NioEventLoopGroup(4);
-        bootstrap.group(eventLoopGroup)
-                .channel(NioSocketChannel.class)
-                .handler(new RpcConsumerInitializer(concurrentThreadPool));
-        localIp = IpUtils.getLocalHostIp();
-        //开启心跳
-        this.startHeartbeat();
-    }
-
-    //设置单例
-    private static volatile RpcConsumer instance;
-    public static RpcConsumer getInstance(){
-        if(instance == null){
-            synchronized(RpcConsumer.class){
-                if(instance == null){
-                    instance = new RpcConsumer();
-                }
-            }
-        }
-        return instance;
-    }
     //心跳定时任务线程池
     private ScheduledExecutorService executorService;
     //心跳间隔时间，默认30秒
@@ -86,6 +59,36 @@ public class RpcConsumer implements Consumer {
             log.info("=============broadcastPingMessageFromConsumer============");
             ConsumerConnectionManager.broadcastPingMessageFromConsumer();
         }, 3, heartbeatInterval, TimeUnit.MILLISECONDS);
+    }
+
+    private RpcConsumer(int heartbeatInterval,int scanNotActiveChannelInterval){
+        bootstrap = new Bootstrap();
+        eventLoopGroup = new NioEventLoopGroup(4);
+        bootstrap.group(eventLoopGroup)
+                .channel(NioSocketChannel.class)
+                .handler(new RpcConsumerInitializer(concurrentThreadPool));
+        localIp = IpUtils.getLocalHostIp();
+        if(heartbeatInterval > 0){
+            this.heartbeatInterval = heartbeatInterval;
+        }
+        if(scanNotActiveChannelInterval > 0){
+            this.scanNotActiveChannelInterval = scanNotActiveChannelInterval;
+        }
+        //开启心跳
+        this.startHeartbeat();
+    }
+
+    //设置单例
+    private static volatile RpcConsumer instance;
+    public static RpcConsumer getInstance(int heartbeatInterval,int scanNotActiveChannelInterval){
+        if(instance == null){
+            synchronized(RpcConsumer.class){
+                if(instance == null){
+                    instance = new RpcConsumer(heartbeatInterval,scanNotActiveChannelInterval);
+                }
+            }
+        }
+        return instance;
     }
 
     public void close(){
