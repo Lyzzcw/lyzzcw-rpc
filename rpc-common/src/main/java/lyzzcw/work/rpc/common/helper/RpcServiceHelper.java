@@ -19,11 +19,11 @@ public class RpcServiceHelper {
     }
 
     /**
-     * 拼接字符串
+     * 拼接字符串(nacos不支持#)
      * @param serviceName 服务名称
      * @param serviceVersion 服务版本号
      * @param group 服务分组
-     * @return 服务名称#服务版本号#服务分组
+     * @return 服务名称_服务版本号_服务分组
      */
     public static String buildNacosServiceKey(String serviceName, String serviceVersion, String group) {
         return String.join("_", serviceName, serviceVersion, group);

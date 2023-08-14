@@ -1,11 +1,13 @@
 package lyzzcw.work.rpc.provider.common.handler;
 
 import com.alibaba.fastjson.JSONObject;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
+import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcStatus;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
@@ -56,37 +58,73 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
             log.info(k + "=" + v);
         });
         concurrentThreadPool.submit(() -> {
-            RpcHeader header = protocol.getHeader();
-            RpcRequest request = protocol.getBody();
-            if (log.isDebugEnabled()) {
-                log.debug("receive request: {}", header.getRequestId());
-            }
-            //将header中的消息类型设置为响应类型的消息
-            header.setMsgType((byte) RpcType.RESPONSE.getType());
-            RpcProtocol<RpcResponse> responseRpcProtocol = new RpcProtocol<RpcResponse>();
-            RpcResponse response = new RpcResponse();
-            try {
-                Object result = handle(request);
-                response.setResult(result);
-                response.setAsync(request.isAsync());
-                response.setOneway(request.isOneway());
-                header.setStatus((byte) RpcStatus.SUCCESS.getCode());
-            } catch (Throwable t) {
-                response.setError(t.getMessage());
-                header.setStatus((byte) RpcStatus.FAIL.getCode());
-                log.error("rpc server handle request error", t);
-            }
-            responseRpcProtocol.setHeader(header);
-            responseRpcProtocol.setBody(response);
+            RpcProtocol<RpcResponse> responseRpcProtocol = handlerMessage(protocol, ctx.channel());
             // 直接返回数据
             ctx.writeAndFlush(responseRpcProtocol).addListener(
                     (ChannelFutureListener) channelFuture -> {
                         if (log.isDebugEnabled()) {
-                            log.debug("send response for request:{}", header.getRequestId());
+                            log.debug("send response for request:{}", protocol.getHeader().getRequestId());
                         }
                     }
             );
         });
+    }
+
+    /**
+     * 处理消息
+     */
+    private RpcProtocol<RpcResponse> handlerMessage(RpcProtocol<RpcRequest> protocol, Channel channel){
+        RpcProtocol<RpcResponse> responseRpcProtocol = null;
+        RpcHeader header = protocol.getHeader();
+        //接收到服务消费者发送的心跳消息
+        if (header.getMsgType() == (byte) RpcType.HEARTBEAT.getType()){
+            responseRpcProtocol = handlerHeartbeatMessage(protocol, header);
+        }else if (header.getMsgType() == (byte) RpcType.REQUEST.getType()){ //请求消息
+            responseRpcProtocol = handlerRequestMessage(protocol, header);
+        }
+        return responseRpcProtocol;
+    }
+
+    private RpcProtocol<RpcResponse> handlerRequestMessage(RpcProtocol<RpcRequest> protocol, RpcHeader header) {
+        RpcRequest request = protocol.getBody();
+        if (log.isDebugEnabled()) {
+            log.debug("receive request: {}", header.getRequestId());
+        }
+        //将header中的消息类型设置为响应类型的消息
+        header.setMsgType((byte) RpcType.RESPONSE.getType());
+        RpcProtocol<RpcResponse> responseRpcProtocol = new RpcProtocol<RpcResponse>();
+        RpcResponse response = new RpcResponse();
+        try {
+            Object result = handle(request);
+            response.setResult(result);
+            response.setAsync(request.isAsync());
+            response.setOneway(request.isOneway());
+            header.setStatus((byte) RpcStatus.SUCCESS.getCode());
+        } catch (Throwable t) {
+            response.setError(t.getMessage());
+            header.setStatus((byte) RpcStatus.FAIL.getCode());
+            log.error("rpc server handle request error", t);
+        }
+        responseRpcProtocol.setHeader(header);
+        responseRpcProtocol.setBody(response);
+        return responseRpcProtocol;
+    }
+
+    /**
+     * 处理心跳
+     */
+    private RpcProtocol<RpcResponse> handlerHeartbeatMessage(RpcProtocol<RpcRequest> protocol, RpcHeader header) {
+        header.setMsgType((byte) RpcType.HEARTBEAT.getType());
+        RpcRequest request = protocol.getBody();
+        RpcProtocol<RpcResponse> responseRpcProtocol = new RpcProtocol<RpcResponse>();
+        RpcResponse response = new RpcResponse();
+        response.setResult(RpcConstants.HEARTBEAT_PONG);
+        response.setAsync(request.isAsync());
+        response.setOneway(request.isOneway());
+        header.setStatus((byte) RpcStatus.SUCCESS.getCode());
+        responseRpcProtocol.setHeader(header);
+        responseRpcProtocol.setBody(response);
+        return responseRpcProtocol;
     }
 
     private Object handle(RpcRequest request) throws Throwable {

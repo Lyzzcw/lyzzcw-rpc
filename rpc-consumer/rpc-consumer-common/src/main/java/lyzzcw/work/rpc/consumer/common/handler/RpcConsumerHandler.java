@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.consumer.common.context.RpcContext;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
+import lyzzcw.work.rpc.protocol.enums.RpcType;
+import lyzzcw.work.rpc.protocol.header.RpcHeader;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.protocol.response.RpcResponse;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
@@ -64,12 +66,33 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcProtocol<RpcResponse> protocol) throws Exception {
         Assert.notNull(protocol, "consumer received none protocol");
         log.info("服务消费者接收到的数据===>>>{}", JSONObject.toJSONString(protocol));
+        this.handlerMessage(protocol);
+    }
+
+    private void handlerMessage(RpcProtocol<RpcResponse> protocol) {
+        RpcHeader header = protocol.getHeader();
+        //接收到服务消费者发送的心跳消息
+        if (header.getMsgType() == (byte) RpcType.HEARTBEAT.getType()){
+            this.handlerHeartbeatMessage(protocol, header);
+        }else if (header.getMsgType() == (byte) RpcType.RESPONSE.getType()){ //请求消息
+            this.handlerResponseMessage(protocol, header);
+        }
+    }
+
+    private void handlerResponseMessage(RpcProtocol<RpcResponse> protocol, RpcHeader header) {
         Long requestId = protocol.getHeader().getRequestId();
         RpcFuture future = pendingResponse.get(requestId);
         Optional.ofNullable(future).ifPresent(f->{
             future.done(protocol);
         });
     }
+
+    private void handlerHeartbeatMessage(RpcProtocol<RpcResponse> protocol, RpcHeader header) {
+        //此处简单打印即可，实际场景可不做处理
+        log.info("receive service provider heartbeat message:{}:{}",protocol.getBody(),
+                protocol.getHeader());
+    }
+
 
     /**
      * 服务消费者向服务请求者发送请求

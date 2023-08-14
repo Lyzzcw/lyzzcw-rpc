@@ -28,6 +28,7 @@ import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
 import lyzzcw.work.rpc.registry.nacos.helper.NacosUrlHelper;
 import lyzzcw.work.rpc.spi.annotation.SPIClass;
+import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -54,6 +55,8 @@ public class NacosRegistryService implements RegistryService {
     public void init(RegistryConfig registryConfig) throws Exception {
         namingService = NamingFactory.createNamingService(
                 NacosUrlHelper.url2Properties(registryConfig.getRegistryAddr()));
+        this.serviceLoadBalancer = ExtensionLoader.getExtension(
+                ServiceLoadBalancer.class, registryConfig.getRegistryLoadBalanceType());
         if (log.isDebugEnabled()) {
             log.debug("nacos registry loaded successfully");
         }
@@ -73,8 +76,10 @@ public class NacosRegistryService implements RegistryService {
 
     @Override
     public ServiceMeta discovery(String serviceName, int invokerHashCode, String sourceIp) throws Exception {
+        serviceName = serviceName.replace("#","_");
         final List<Instance> allInstances = namingService.getAllInstances(serviceName);
         if (CollectionUtils.isEmpty(allInstances)) {
+            log.warn("no instances found for service :{}" ,serviceName);
             return null;
         }
 
