@@ -68,6 +68,13 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
         ProviderChannelCache.remove(ctx.channel());
     }
 
+    //netty 抛出异常
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        super.exceptionCaught(ctx,cause);
+        ProviderChannelCache.remove(ctx.channel());
+    }
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RpcProtocol<RpcRequest> protocol) throws Exception {
         log.info("Rpc provider received:{}", JSONObject.toJSONString(protocol));
@@ -139,13 +146,13 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
     private void handlerHeartbeatMessageFromConsumer(RpcProtocol<RpcRequest> protocol,Channel channel) {
         RpcHeader header = protocol.getHeader();
         header.setMsgType((byte) RpcType.HEARTBEAT_PROVIDER_TO_CONSUMER_PONG.getType());
-        RpcProtocol<RpcRequest> requestRpcProtocol = new RpcProtocol<RpcRequest>();
-        RpcRequest request = new RpcRequest();
-        request.setParameters(new Object[]{RpcConstants.HEARTBEAT_PONG});
+        RpcProtocol<RpcResponse> responseRpcProtocol = new RpcProtocol<RpcResponse>();
+        RpcResponse response = new RpcResponse();
+        response.setResult(RpcConstants.HEARTBEAT_PONG);
         header.setStatus((byte) RpcStatus.SUCCESS.getCode());
-        requestRpcProtocol.setHeader(header);
-        requestRpcProtocol.setBody(request);
-        channel.writeAndFlush(requestRpcProtocol);
+        responseRpcProtocol.setHeader(header);
+        responseRpcProtocol.setBody(response);
+        channel.writeAndFlush(responseRpcProtocol);
     }
 
 
@@ -153,6 +160,7 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
         log.info("receive service consumer heartbeat message, " +
                 "the consumer is: {}, the heartbeat message is: {}",
                 channel.remoteAddress(), protocol.getBody().getParameters()[0]);
+        ProviderChannelCache.cleanPendingPong(channel);
     }
 
     private Object handle(RpcRequest request) throws Throwable {

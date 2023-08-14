@@ -16,28 +16,70 @@
 package lyzzcw.work.rpc.provider.common.cache;
 
 import io.netty.channel.Channel;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author lzy
  * @version 1.0.0
- * @description 缓存连接成功的Channel
+ * @description
  */
+@Slf4j
 public class ProviderChannelCache {
 
-    private static volatile Set<Channel> channelCache = new CopyOnWriteArraySet<>();
+    //缓存连接成功的Channel
+    private static volatile Set<Channel> activeChannelCache = new CopyOnWriteArraySet<>();
 
     public static void add(Channel channel){
-        channelCache.add(channel);
+        activeChannelCache.add(channel);
     }
 
     public static void remove(Channel channel){
-        channelCache.remove(channel);
+        activeChannelCache.remove(channel);
+        pendingPongsCache.remove(channel.id().toString());
+        if(log.isDebugEnabled()) {
+            log.debug("Removed channel,activeChannelCache:{}" +
+                    "pendingPongsCache:{}",activeChannelCache,pendingPongsCache);
+        }
     }
 
-    public static Set<Channel> getChannelCache(){
-        return channelCache;
+    public static Set<Channel> getActiveChannelCache(){
+        return activeChannelCache;
+    }
+
+    //记录未收到pong心跳信息的channelId
+    private static ConcurrentHashMap<String, AtomicInteger> pendingPongsCache = new ConcurrentHashMap<>();
+    //3次未收到pong响应,断开连接
+    private static final int MAX_PENDING_PONG = 3;
+
+    /**
+     * 发送ping消息后调用此方法
+     * true -> 超过次数断开连接
+     * false -> 继续等待
+     * @param channel
+     * @return
+     */
+    public static boolean incPendingPong(Channel channel){
+        int pendingNum = pendingPongsCache.computeIfAbsent(channel.id().toString(),
+                k -> new AtomicInteger(0)).incrementAndGet();
+        if(log.isDebugEnabled()){
+            log.debug("pendingPongsCache details:{}",pendingPongsCache);
+        }
+        return pendingNum > MAX_PENDING_PONG;
+    }
+
+    /**
+     * 收到PONG响应后 清空缓存次数
+     * @param channel
+     */
+    public static void cleanPendingPong(Channel channel){
+        pendingPongsCache.remove(channel.id().toString());
+        if(log.isDebugEnabled()){
+            log.debug("pendingPongsCache details:{}",pendingPongsCache);
+        }
     }
 }

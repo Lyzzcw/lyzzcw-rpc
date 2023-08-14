@@ -101,12 +101,15 @@ public class RpcDecoder extends ByteToMessageDecoder implements RpcCodec {
                     out.add(protocol);
                 }
                 break;
-            case HEARTBEAT_CONSUMER_TO_PROVIDER_PING:
-                //服务提供者发送给服务消费者的心跳数据
+
             case HEARTBEAT_PROVIDER_TO_CONSUMER_PING:
                 //服务消费者发送给服务提供者的心跳数据
             case HEARTBEAT_PROVIDER_TO_CONSUMER_PONG:
                 //服务消费者发送给服务提供者的心跳响应
+                heartbeatResponse(out, data, header, serialization);
+                break;
+            case HEARTBEAT_CONSUMER_TO_PROVIDER_PING:
+                //服务提供者发送给服务消费者的心跳数据
             case HEARTBEAT_CONSUMER_TO_PROVIDER_PONG:
                 //服务提供者发送给服务消费者的心跳响应
                 heartbeatRequest(out, data, header, serialization);
@@ -114,12 +117,36 @@ public class RpcDecoder extends ByteToMessageDecoder implements RpcCodec {
         }
     }
 
+    /**
+     * provider 序列化消息体
+     * @param out
+     * @param data
+     * @param header
+     * @param serialization
+     */
     private void heartbeatRequest(List<Object> out, byte[] data, RpcHeader header, Serialization serialization) {
         RpcRequest heartbeatRequest = serialization.deserialize(data, RpcRequest.class);
         if (heartbeatRequest != null) {
             RpcProtocol<RpcRequest> protocol = new RpcProtocol<>();
             protocol.setHeader(header);
             protocol.setBody(heartbeatRequest);
+            out.add(protocol);
+        }
+    }
+
+    /**
+     * consumer 序列化消息体
+     * @param out
+     * @param data
+     * @param header
+     * @param serialization
+     */
+    private void heartbeatResponse(List<Object> out, byte[] data, RpcHeader header, Serialization serialization) {
+        RpcResponse heartbeatResponse = serialization.deserialize(data, RpcResponse.class);
+        if (heartbeatResponse != null) {
+            RpcProtocol<RpcResponse> protocol = new RpcProtocol<>();
+            protocol.setHeader(header);
+            protocol.setBody(heartbeatResponse);
             out.add(protocol);
         }
     }

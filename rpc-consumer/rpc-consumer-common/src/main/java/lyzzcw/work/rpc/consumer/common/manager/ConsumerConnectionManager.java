@@ -20,6 +20,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.constant.RpcConstants;
+import lyzzcw.work.rpc.consumer.common.RpcConsumer;
 import lyzzcw.work.rpc.consumer.common.cache.ConsumerChannelCache;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
@@ -40,7 +41,7 @@ public class ConsumerConnectionManager {
      * 扫描并移除不活跃的连接
      */
     public static void scanNotActiveChannel(){
-        Set<Channel> channelCache = ConsumerChannelCache.getChannelCache();
+        Set<Channel> channelCache = ConsumerChannelCache.getActiveChannelCache();
         if (channelCache == null || channelCache.isEmpty()) return;
         channelCache.stream().forEach((channel) -> {
             if (!channel.isOpen() || !channel.isActive()){
@@ -54,7 +55,7 @@ public class ConsumerConnectionManager {
      * 发送ping消息
      */
     public static void broadcastPingMessageFromConsumer(){
-        Set<Channel> channelCache = ConsumerChannelCache.getChannelCache();
+        Set<Channel> channelCache = ConsumerChannelCache.getActiveChannelCache();
         if (channelCache == null || channelCache.isEmpty()) return;
         RpcHeader header = RpcHeaderFactory.getRequestHeader(RpcConstants.SERIALIZATION_PROTOSTUFF, RpcType.HEARTBEAT_CONSUMER_TO_PROVIDER_PING.getType());
         RpcProtocol<RpcRequest> requestRpcProtocol = new RpcProtocol<RpcRequest>();
@@ -65,7 +66,16 @@ public class ConsumerConnectionManager {
         channelCache.stream().forEach((channel) -> {
             if (channel.isOpen() && channel.isActive()){
                log.info("send heartbeat message to service provider, the provider is: {}, the heartbeat message is: {}", channel.remoteAddress(), RpcConstants.HEARTBEAT_PING);
-               channel.writeAndFlush(requestRpcProtocol);
+               channel.writeAndFlush(requestRpcProtocol).addListener(
+                       (ChannelFutureListener) channelFuture -> {
+                           //记录发送ping次数
+                           if(ConsumerChannelCache.incPendingPong(channel)){
+                               log.warn("pending heartbeat message pong over limit:{}", channel.id().toString());
+                               //重连
+                               RpcConsumer.getInstance(-1,-1).reconnect(channel);
+                           }
+                       }
+               );
             }
         });
     }

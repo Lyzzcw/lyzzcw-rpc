@@ -1,6 +1,7 @@
 package lyzzcw.work.rpc.consumer.common;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoopGroup;
@@ -22,6 +23,7 @@ import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -96,6 +98,32 @@ public class RpcConsumer implements Consumer {
         eventLoopGroup.shutdownGracefully();
         concurrentThreadPool.stop();
         executorService.shutdown();
+    }
+
+    public void reconnect(Channel channel) throws InterruptedException {
+        InetSocketAddress socketAddress = (InetSocketAddress) channel.remoteAddress();
+        String ip = socketAddress.getAddress().getHostAddress();
+        int port = socketAddress.getPort();
+        ServiceMeta serviceMeta = new ServiceMeta();
+        serviceMeta.setServiceAddr(ip);
+        serviceMeta.setServicePort(port);
+        RpcConsumerHandler handler = RpcConsumerHandlerHelper.get(serviceMeta);
+        if(handler != null){
+            handler.close();
+            ChannelFuture channelFuture = bootstrap.connect(ip,port).sync();
+            channelFuture.addListener((ChannelFutureListener) listener -> {
+                if(listener.isSuccess()){
+                    log.info("Successfully reconnected rpc server {} on port {}", ip, port);
+                    ConnectionsContext.add(serviceMeta);
+                }else{
+                    log.error("Failure connecting rpc server {} on port {}", ip, port);
+                    channelFuture.cause().printStackTrace();
+                    eventLoopGroup.shutdownGracefully();
+                }
+            });
+            handler = channelFuture.channel().pipeline().get(RpcConsumerHandler.class);
+            RpcConsumerHandlerHelper.put(serviceMeta,handler);
+        }
     }
 
     @Override

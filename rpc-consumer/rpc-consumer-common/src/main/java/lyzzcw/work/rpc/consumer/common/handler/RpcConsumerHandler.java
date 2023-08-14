@@ -104,6 +104,7 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
         log.info("receive service provider heartbeat message, " +
                 "the provider is: {}, the heartbeat message is: {}",
                 channel.remoteAddress(), protocol.getBody().getResult());
+        ConsumerChannelCache.cleanPendingPong(channel);
     }
 
     /**
