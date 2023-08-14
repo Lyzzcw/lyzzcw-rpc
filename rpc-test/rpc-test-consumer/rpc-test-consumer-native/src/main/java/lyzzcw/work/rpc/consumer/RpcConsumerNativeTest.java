@@ -8,6 +8,7 @@ import lyzzcw.work.rpc.test.api.DemoService;
 import org.junit.Test;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lzy
@@ -17,6 +18,24 @@ import java.util.concurrent.ExecutionException;
  */
 @Slf4j
 public class RpcConsumerNativeTest {
+
+    public static void main(String[] args) {
+        RpcClient client = new RpcClient(
+                //                "127.0.0.1:2181",
+                "127.0.0.1:8848?namespace=1167c87c-5ea8-45b5-90d6-7964d78abe4a",
+                RpcConstants.REGISTRY_CENTER_NACOS,
+                RpcConstants.SERVICE_LOAD_BALANCER_LEAST_CONNECTIONS,
+                RpcConstants.PROXY_JAVASSIST,
+                "1.0.0",
+                "lzy",
+                RpcConstants.SERIALIZATION_PROTOSTUFF,
+                3000,
+                false,
+                false);
+        DemoService demoService = client.create(DemoService.class);
+        String result = demoService.hello("lzy", 29);
+        log.info("result: " + result);
+    }
     @Test
     public void test() throws InterruptedException {
         RpcClient client = new RpcClient(
@@ -34,6 +53,8 @@ public class RpcConsumerNativeTest {
         DemoService demoService = client.create(DemoService.class);
         String result = demoService.hello("lzy", 29);
         log.info("result: " + result);
+
+        TimeUnit.MINUTES.sleep(5);
     }
 
     @Test

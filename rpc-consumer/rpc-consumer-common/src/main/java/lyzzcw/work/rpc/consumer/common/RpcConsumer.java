@@ -12,6 +12,7 @@ import lyzzcw.work.rpc.common.ip.IpUtils;
 import lyzzcw.work.rpc.consumer.common.handler.RpcConsumerHandler;
 import lyzzcw.work.rpc.consumer.common.helper.RpcConsumerHandlerHelper;
 import lyzzcw.work.rpc.consumer.common.initializer.RpcConsumerInitializer;
+import lyzzcw.work.rpc.consumer.common.manager.ConsumerConnectionManager;
 import lyzzcw.work.rpc.loadbalancer.context.ConnectionsContext;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
@@ -24,6 +25,9 @@ import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lzy
@@ -47,6 +51,8 @@ public class RpcConsumer implements Consumer {
                 .channel(NioSocketChannel.class)
                 .handler(new RpcConsumerInitializer(concurrentThreadPool));
         localIp = IpUtils.getLocalHostIp();
+        //开启心跳
+        this.startHeartbeat();
     }
 
     //设置单例
@@ -61,11 +67,32 @@ public class RpcConsumer implements Consumer {
         }
         return instance;
     }
+    //心跳定时任务线程池
+    private ScheduledExecutorService executorService;
+    //心跳间隔时间，默认30秒
+    private int heartbeatInterval = 30000;
+    //扫描并移除空闲连接时间，默认60秒
+    private int scanNotActiveChannelInterval = 60000;
+
+    private void startHeartbeat() {
+        executorService = Executors.newScheduledThreadPool(2);
+        //扫描并处理所有不活跃的连接
+        executorService.scheduleAtFixedRate(() -> {
+            log.info("=============scanNotActiveChannel============");
+            ConsumerConnectionManager.scanNotActiveChannel();
+        }, 10, scanNotActiveChannelInterval, TimeUnit.MILLISECONDS);
+
+        executorService.scheduleAtFixedRate(()->{
+            log.info("=============broadcastPingMessageFromConsumer============");
+            ConsumerConnectionManager.broadcastPingMessageFromConsumer();
+        }, 3, heartbeatInterval, TimeUnit.MILLISECONDS);
+    }
 
     public void close(){
         RpcConsumerHandlerHelper.closeRpcClientHandler();
         eventLoopGroup.shutdownGracefully();
         concurrentThreadPool.stop();
+        executorService.shutdown();
     }
 
     @Override

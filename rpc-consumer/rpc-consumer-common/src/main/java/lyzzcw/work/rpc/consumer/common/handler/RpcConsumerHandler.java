@@ -9,6 +9,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.constant.RpcConstants;
+import lyzzcw.work.rpc.consumer.common.cache.ConsumerChannelCache;
 import lyzzcw.work.rpc.consumer.common.context.RpcContext;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcStatus;
@@ -46,6 +47,7 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
         this.remotePeer = this.channel.remoteAddress();
+        ConsumerChannelCache.add(channel);
     }
     //netty 注册连接
     @Override
@@ -57,21 +59,25 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
+        ConsumerChannelCache.remove(ctx.channel());
     }
     //netty 抛出异常
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx,cause);
+        ConsumerChannelCache.remove(ctx.channel());
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcProtocol<RpcResponse> protocol) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, RpcProtocol<RpcResponse> protocol) throws Exception {
         Assert.notNull(protocol, "consumer received none protocol");
         log.info("服务消费者接收到的数据===>>>{}", JSONObject.toJSONString(protocol));
-        this.handlerMessage(protocol);
+        concurrentThreadPool.submit(() -> {
+            this.handlerMessage(protocol, ctx.channel());
+        });
     }
 
-    private void handlerMessage(RpcProtocol<RpcResponse> protocol) {
+    private void handlerMessage(RpcProtocol<RpcResponse> protocol, Channel channel) {
         RpcHeader header = protocol.getHeader();
         //接收到服务消费者发送的心跳消息
         if (header.getMsgType() == (byte) RpcType.HEARTBEAT_TO_CONSUMER.getType()){
@@ -85,7 +91,7 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
 
     private void handlerResponseMessage(RpcProtocol<RpcResponse> protocol, RpcHeader header) {
         Long requestId = protocol.getHeader().getRequestId();
-        RpcFuture future = pendingResponse.get(requestId);
+        RpcFuture future = pendingResponse.remove(requestId);
         Optional.ofNullable(future).ifPresent(f->{
             future.done(protocol);
         });
@@ -122,13 +128,9 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
      */
     public RpcFuture sendRequest(RpcProtocol<RpcRequest> protocol) {
         log.info("服务消费者发送的数据===>>>{}", JSONObject.toJSONString(protocol));
-        if(protocol.getBody().isOneway()){
-            return sendRequestOneway(protocol);
-        }
-        if(protocol.getBody().isAsync()){
-            return sendRequestAsync(protocol);
-        }
-        return sendRequestSync(protocol);
+        return concurrentThreadPool.submit(() -> {
+            return protocol.getBody().isOneway() ? this.sendRequestOneway(protocol) : protocol.getBody().isAsync() ? sendRequestAsync(protocol) : this.sendRequestSync(protocol);
+        });
     }
 
     /**
