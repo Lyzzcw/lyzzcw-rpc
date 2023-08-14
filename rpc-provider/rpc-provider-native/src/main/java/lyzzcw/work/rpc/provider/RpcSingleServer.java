@@ -15,11 +15,12 @@ public class RpcSingleServer extends BaseServer {
 
     public RpcSingleServer(String serverAddress,String registryAddress,
                            String registryType,String registryLoadBalanceType,
-                           String scanPackage,String reflectType) {
+                           String scanPackage,String reflectType,
+                           int heartbeatInterval, int scanNotActiveChannelInterval) {
         //调用父类构造方法
         super(serverAddress,registryAddress,
                 registryType,registryLoadBalanceType,
-                reflectType);
+                reflectType,heartbeatInterval,scanNotActiveChannelInterval);
         try {
             this.handlerMap =
                     RpcServiceScanner.doScannerWithRpcServiceAnnotationFilterAndRegistryService(

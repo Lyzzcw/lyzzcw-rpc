@@ -14,6 +14,7 @@ import lyzzcw.work.rpc.protocol.enums.RpcType;
 import lyzzcw.work.rpc.protocol.header.RpcHeader;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.protocol.response.RpcResponse;
+import lyzzcw.work.rpc.provider.common.cache.ProviderChannelCache;
 import lyzzcw.work.rpc.reflect.api.ReflectInvoker;
 import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
 import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
@@ -51,6 +52,23 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
     }
 
     @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+        ProviderChannelCache.add(ctx.channel());
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        ProviderChannelCache.remove(ctx.channel());
+    }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        super.channelUnregistered(ctx);
+        ProviderChannelCache.remove(ctx.channel());
+    }
+
+    @Override
     protected void channelRead0(ChannelHandlerContext ctx, RpcProtocol<RpcRequest> protocol) throws Exception {
         log.info("Rpc provider received:{}", JSONObject.toJSONString(protocol));
         log.info("handlerMap中存放的数据如下所示：");
@@ -76,10 +94,10 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
     private RpcProtocol<RpcResponse> handlerMessage(RpcProtocol<RpcRequest> protocol, Channel channel){
         RpcProtocol<RpcResponse> responseRpcProtocol = null;
         RpcHeader header = protocol.getHeader();
-        if (header.getMsgType() == (byte) RpcType.HEARTBEAT_FROM_CONSUMER.getType()){
-            //接收到服务消费者发送的心跳消息
-            responseRpcProtocol = handlerHeartbeatMessageFromConsumer(protocol, header);
-        }else if (header.getMsgType() == (byte) RpcType.HEARTBEAT_TO_PROVIDER.getType()){
+        if (header.getMsgType() == (byte) RpcType.HEARTBEAT_CONSUMER_TO_PROVIDER_PONG.getType()){
+            //接收到服务消费者发送的心跳响应
+            handlerHeartbeatMessageFromConsumer(protocol, channel);
+        }else if (header.getMsgType() == (byte) RpcType.HEARTBEAT_CONSUMER_TO_PROVIDER_PING.getType()){
             //接收到服务消费者响应的心跳消息
             handlerHeartbeatMessageToProvider(protocol, channel);
         }else if (header.getMsgType() == (byte) RpcType.REQUEST.getType()){
@@ -118,18 +136,16 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
     /**
      * 处理心跳
      */
-    private RpcProtocol<RpcResponse> handlerHeartbeatMessageFromConsumer(RpcProtocol<RpcRequest> protocol, RpcHeader header) {
-        header.setMsgType((byte) RpcType.HEARTBEAT_TO_CONSUMER.getType());
-        RpcRequest request = protocol.getBody();
-        RpcProtocol<RpcResponse> responseRpcProtocol = new RpcProtocol<RpcResponse>();
-        RpcResponse response = new RpcResponse();
-        response.setResult(RpcConstants.HEARTBEAT_PONG);
-        response.setAsync(request.isAsync());
-        response.setOneway(request.isOneway());
+    private void handlerHeartbeatMessageFromConsumer(RpcProtocol<RpcRequest> protocol,Channel channel) {
+        RpcHeader header = protocol.getHeader();
+        header.setMsgType((byte) RpcType.HEARTBEAT_PROVIDER_TO_CONSUMER_PONG.getType());
+        RpcProtocol<RpcRequest> requestRpcProtocol = new RpcProtocol<RpcRequest>();
+        RpcRequest request = new RpcRequest();
+        request.setParameters(new Object[]{RpcConstants.HEARTBEAT_PONG});
         header.setStatus((byte) RpcStatus.SUCCESS.getCode());
-        responseRpcProtocol.setHeader(header);
-        responseRpcProtocol.setBody(response);
-        return responseRpcProtocol;
+        requestRpcProtocol.setHeader(header);
+        requestRpcProtocol.setBody(request);
+        channel.writeAndFlush(requestRpcProtocol);
     }
 
 

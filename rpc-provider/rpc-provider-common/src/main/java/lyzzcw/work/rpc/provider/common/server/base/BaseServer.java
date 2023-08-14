@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.codec.RpcDecoder;
 import lyzzcw.work.rpc.codec.RpcEncoder;
 import lyzzcw.work.rpc.provider.common.handler.RpcProviderHandler;
+import lyzzcw.work.rpc.provider.common.manager.ProviderConnectionManager;
 import lyzzcw.work.rpc.provider.common.server.api.Server;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
@@ -21,6 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lzy
@@ -41,10 +45,18 @@ public class BaseServer implements Server {
     private String reflectType;
     //服务注册与发现的实例
     protected RegistryService registryService;
+    //心跳定时任务线程池
+    private ScheduledExecutorService executorService;
+    //心跳间隔时间，默认30秒
+    private int heartbeatInterval = 30000;
+    //扫描并移除空闲连接时间，默认60秒
+    private int scanNotActiveChannelInterval = 60000;
+
 
     public BaseServer(String serverAddress,String registryAddress,
                       String registryType,String registryLoadBalanceType,
-                      String reflectType) {
+                      String reflectType,
+                      int heartbeatInterval, int scanNotActiveChannelInterval) {
         if (!StringUtils.isEmpty(serverAddress)){
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
@@ -53,6 +65,28 @@ public class BaseServer implements Server {
         this.reflectType = reflectType;
         this.registryService = this.getRegistryService(registryAddress,
                 registryType,registryLoadBalanceType);
+        if (heartbeatInterval > 0){
+            this.heartbeatInterval = heartbeatInterval;
+        }
+        if (scanNotActiveChannelInterval > 0){
+            this.scanNotActiveChannelInterval = scanNotActiveChannelInterval;
+        }
+    }
+
+    /**
+     * 启动定时任务，定时向服务消费者发送心跳，定时扫描并移除不活跃连接
+     */
+    private void startHeartbeat() {
+        executorService = Executors.newScheduledThreadPool(2);
+        //扫描并处理所有不活跃的连接
+        executorService.scheduleAtFixedRate(() -> {
+            log.info("=============scanNotActiveChannel============");
+            ProviderConnectionManager.scanNotActiveChannel();
+        }, 10, scanNotActiveChannelInterval, TimeUnit.MILLISECONDS);
+        executorService.scheduleAtFixedRate(()->{
+            log.info("=============broadcastPingMessageFromConsumer============");
+            ProviderConnectionManager.broadcastPingMessageFromProvider();
+        }, 3, heartbeatInterval, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -101,7 +135,8 @@ public class BaseServer implements Server {
             ChannelFuture f = b.bind(port).sync(); // (7)
 
             log.info("Server started on {}:{}", host, port);
-
+            //开启心跳定时任务
+            this.startHeartbeat();
             // 等待服务器  socket 关闭 。
             // 在这个例子中，这不会发生，但你可以优雅地关闭你的服务器。
             f.channel().closeFuture().sync();

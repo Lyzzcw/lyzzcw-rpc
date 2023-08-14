@@ -20,7 +20,8 @@ public class RpcSingleServerTest {
                 RpcConstants.REGISTRY_CENTER_NACOS,
                 RpcConstants.SERVICE_LOAD_BALANCER_ROUND_ROBIN,
                 "lyzzcw.work.rpc.test",
-                RpcConstants.REFLECT_TYPE_ASM);
+                RpcConstants.REFLECT_TYPE_ASM,
+                10000,-1);
         singleServer.startNettyServer();
     }
 
@@ -33,7 +34,7 @@ public class RpcSingleServerTest {
                 RpcConstants.REGISTRY_CENTER_NACOS,
                 RpcConstants.SERVICE_LOAD_BALANCER_ROUND_ROBIN,
                 "lyzzcw.work.rpc.test",
-                RpcConstants.REFLECT_TYPE_ASM);
+                RpcConstants.REFLECT_TYPE_ASM,-1,-1);
         singleServer.startNettyServer();
     }
 

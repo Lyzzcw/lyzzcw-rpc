@@ -16,13 +16,13 @@ public enum RpcType {
     //响应消息
     RESPONSE(2),
     //从服务消费者发起的心跳数据
-    HEARTBEAT_FROM_CONSUMER(3),
+    HEARTBEAT_CONSUMER_TO_PROVIDER_PING(3),
     //服务提供者响应服务消费者的心跳数据
-    HEARTBEAT_TO_CONSUMER(4),
+    HEARTBEAT_PROVIDER_TO_CONSUMER_PONG(4),
     //从服务提供者发起的心跳数据
-    HEARTBEAT_FROM_PROVIDER(5),
+    HEARTBEAT_PROVIDER_TO_CONSUMER_PING(5),
     //服务消费者响应服务提供者的心跳数据
-    HEARTBEAT_TO_PROVIDER(6);
+    HEARTBEAT_CONSUMER_TO_PROVIDER_PONG(6);
     ;
 
     private final int type;

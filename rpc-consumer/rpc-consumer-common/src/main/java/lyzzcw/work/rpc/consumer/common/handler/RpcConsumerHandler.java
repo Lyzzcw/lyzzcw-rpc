@@ -79,10 +79,9 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
 
     private void handlerMessage(RpcProtocol<RpcResponse> protocol, Channel channel) {
         RpcHeader header = protocol.getHeader();
-        //接收到服务消费者发送的心跳消息
-        if (header.getMsgType() == (byte) RpcType.HEARTBEAT_TO_CONSUMER.getType()){
+        if (header.getMsgType() == (byte) RpcType.HEARTBEAT_PROVIDER_TO_CONSUMER_PONG.getType()){
             this.handlerHeartbeatMessageToConsumer(protocol, channel);
-        }else if (header.getMsgType() == (byte) RpcType.HEARTBEAT_FROM_PROVIDER.getType()){
+        }else if (header.getMsgType() == (byte) RpcType.HEARTBEAT_PROVIDER_TO_CONSUMER_PING.getType()){
             this.handlerHeartbeatMessageFromProvider(protocol, channel);
         }else if (header.getMsgType() == (byte) RpcType.RESPONSE.getType()){ //请求消息
             this.handlerResponseMessage(protocol, header);
@@ -112,7 +111,7 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
      */
     private void handlerHeartbeatMessageFromProvider(RpcProtocol<RpcResponse> protocol, Channel channel) {
         RpcHeader header = protocol.getHeader();
-        header.setMsgType((byte) RpcType.HEARTBEAT_TO_PROVIDER.getType());
+        header.setMsgType((byte) RpcType.HEARTBEAT_CONSUMER_TO_PROVIDER_PONG.getType());
         RpcProtocol<RpcRequest> requestRpcProtocol = new RpcProtocol<RpcRequest>();
         RpcRequest request = new RpcRequest();
         request.setParameters(new Object[]{RpcConstants.HEARTBEAT_PONG});
