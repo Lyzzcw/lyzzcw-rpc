@@ -2,6 +2,9 @@ package lyzzcw.work.rpc.proxy.api.object;
 
 
 import lombok.extern.slf4j.Slf4j;
+import lyzzcw.work.rpc.cache.result.CacheResultKey;
+import lyzzcw.work.rpc.cache.result.CacheResultManager;
+import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
 import lyzzcw.work.rpc.protocol.header.RpcHeaderFactory;
@@ -59,6 +62,15 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
      * 是否单向调用
      */
     private boolean oneway;
+    /**
+     * 是否开启结果缓存
+     */
+    private boolean enableResultCache;
+
+    /**
+     * 结果缓存管理器
+     */
+    private CacheResultManager<Object> cacheResultManager;
 
 
     public ObjectProxy(Class<T> clazz) {
@@ -66,7 +78,8 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
     }
     public ObjectProxy(Class<T> clazz, String serviceVersion, String serviceGroup,
                        String serializationType, long timeout, RegistryService registryService,
-                       Consumer consumer, boolean async, boolean oneway) {
+                       Consumer consumer, boolean async, boolean oneway,
+                       boolean enableResultCache, int resultCacheExpire) {
         this.clazz = clazz;
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
@@ -76,6 +89,11 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
         this.serializationType = serializationType;
         this.async = async;
         this.oneway = oneway;
+        this.enableResultCache = enableResultCache;
+        if (resultCacheExpire <= 0){
+            resultCacheExpire = RpcConstants.RPC_SCAN_RESULT_CACHE_EXPIRE;
+        }
+        this.cacheResultManager = CacheResultManager.getInstance(resultCacheExpire, enableResultCache);
     }
 
     @Override
@@ -94,6 +112,47 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
                 throw new IllegalStateException(String.valueOf(method));
             }
         }
+        //开启缓存，直接调用方法请求服务提供者
+        if (enableResultCache) return invokeSendRequestMethodCache(method, args);
+        return invokeSendRequestMethod(method, args);
+    }
+
+    /**
+     * 获取缓存结果
+     * @param method
+     * @param args
+     * @return
+     * @throws Exception
+     */
+    private Object invokeSendRequestMethodCache(Method method, Object[] args) throws Exception {
+        //开启缓存，则处理缓存
+        CacheResultKey cacheResultKey = new CacheResultKey(method.getDeclaringClass().getName(), method.getName(), method.getParameterTypes(), args, serviceVersion, serviceGroup);
+        Object obj = this.cacheResultManager.get(cacheResultKey);
+        if (obj == null){
+            if(log.isDebugEnabled()){
+                log.debug("Cache missed...");
+            }
+            obj = invokeSendRequestMethod(method, args);
+            if (obj != null){
+                cacheResultKey.setCacheTimeStamp(System.currentTimeMillis());
+                this.cacheResultManager.put(cacheResultKey, obj);
+            }
+        }else {
+            if(log.isDebugEnabled()){
+                log.debug("Cache hit:{}",obj);
+            }
+        }
+        return obj;
+    }
+
+    /**
+     * 调用远程服务器获取结果
+     * @param method
+     * @param args
+     * @return
+     * @throws Exception
+     */
+    private Object invokeSendRequestMethod(Method method, Object[] args) throws Exception {
         RpcProtocol<RpcRequest> requestRpcProtocol = new RpcProtocol<RpcRequest>();
         requestRpcProtocol.setHeader(RpcHeaderFactory.getRequestHeader(serializationType, RpcType.REQUEST.getType()));
         RpcRequest request = new RpcRequest();
@@ -107,16 +166,16 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
         request.setOneway(oneway);
         requestRpcProtocol.setBody(request);
         if(log.isDebugEnabled()){
-            log.debug("request service class name:{}",method.getDeclaringClass().getName());
-            log.debug("request service method name:{}",method.getName());
+            log.debug("request service class name:{}", method.getDeclaringClass().getName());
+            log.debug("request service method name:{}", method.getName());
             if (method.getParameterTypes() != null && method.getParameterTypes().length > 0){
                 for (int i = 0; i < method.getParameterTypes().length; ++i) {
-                    log.debug("request service parameter type:{}",method.getParameterTypes()[i].getName());
+                    log.debug("request service parameter type:{}", method.getParameterTypes()[i].getName());
                 }
             }
             if (args != null && args.length > 0){
                 for (int i = 0; i < args.length; ++i) {
-                    log.debug("request service parameters:{}",args[i].toString());
+                    log.debug("request service parameters:{}", args[i].toString());
                 }
             }
         }
@@ -188,4 +247,5 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
         }
         return classType;
     }
+
 }

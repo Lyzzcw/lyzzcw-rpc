@@ -32,10 +32,14 @@ public class RpcConsumerNativeTest {
                 3000,
                 false,
                 false,5000,-1,
-        2000,5);
+        2000,5,
+                true,100000);
         DemoService demoService = client.create(DemoService.class);
-        String result = demoService.hello("lzy", 29);
-        log.info("result: " + result);
+        for (int i = 0; i < 2 ;i++) {
+            String result = demoService.hello("lzy", 29);
+            log.info("result: " + result);
+        }
+
     }
 //    @Test
 //    public void test() throws InterruptedException {

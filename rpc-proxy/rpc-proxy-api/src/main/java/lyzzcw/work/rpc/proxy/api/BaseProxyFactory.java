@@ -38,6 +38,8 @@ public abstract class BaseProxyFactory<T> implements ProxyFactory {
                 proxyConfig.getRegistryService(),
                 proxyConfig.getConsumer(),
                 proxyConfig.isAsync(),
-                proxyConfig.isOneway());
+                proxyConfig.isOneway(),
+                proxyConfig.isEnableResultCache(),
+                proxyConfig.getResultCacheExpire());
     }
 }

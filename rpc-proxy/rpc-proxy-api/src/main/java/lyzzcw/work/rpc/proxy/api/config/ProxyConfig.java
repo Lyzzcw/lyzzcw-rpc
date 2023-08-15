@@ -71,10 +71,21 @@ public class ProxyConfig<T> implements Serializable {
      * 是否单向调用
      */
     private boolean oneway;
+    /**
+     * 是否开启结果缓存
+     */
+    private boolean enableResultCache;
+
+    /**
+     * 缓存结果的时长，单位是毫秒
+     */
+    private int resultCacheExpire;
+
 
     public ProxyConfig(Class<T> clazz, String serviceVersion, String serviceGroup,
                        long timeout,RegistryService registryService, Consumer consumer,
-                       String serializationType, boolean async, boolean oneway) {
+                       String serializationType, boolean async, boolean oneway,
+                       boolean enableResultCache, int resultCacheExpire) {
         this.clazz = clazz;
         this.serviceVersion = serviceVersion;
         this.serviceGroup = serviceGroup;
@@ -84,5 +95,7 @@ public class ProxyConfig<T> implements Serializable {
         this.serializationType = serializationType;
         this.async = async;
         this.oneway = oneway;
+        this.enableResultCache = enableResultCache;
+        this.resultCacheExpire = resultCacheExpire;
     }
 }

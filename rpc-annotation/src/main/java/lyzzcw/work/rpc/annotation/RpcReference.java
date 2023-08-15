@@ -58,4 +58,34 @@ public @interface RpcReference {
      * 代理的类型:jdk,javassist,cglib
      */
     String proxy() default RpcConstants.RPC_REFERENCE_DEFAULT_PROXY;
+    /**
+     * 心跳间隔时间，默认30秒
+     */
+    int heartbeatInterval() default RpcConstants.RPC_COMMON_DEFAULT_HEARTBEATINTERVAL;
+
+    /**
+     * 扫描空闲连接间隔时间，默认60秒
+     */
+    int scanNotActiveChannelInterval() default RpcConstants.RPC_COMMON_DEFAULT_SCANNOTACTIVECHANNELINTERVAL;
+
+    /**
+     * 重试间隔时间
+     */
+    int retryInterval() default RpcConstants.RPC_REFERENCE_DEFAULT_RETRYINTERVAL;
+
+    /**
+     * 重试间隔时间
+     */
+    int retryTimes() default RpcConstants.RPC_REFERENCE_DEFAULT_RETRYTIMES;
+
+    /**
+     * 是否开启结果缓存
+     */
+    boolean enableResultCache() default false;
+
+    /**
+     * 缓存结果的时长，单位是毫秒
+     */
+    int resultCacheExpire() default RpcConstants.RPC_SCAN_RESULT_CACHE_EXPIRE;
+
 }

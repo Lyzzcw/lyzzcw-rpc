@@ -38,9 +38,17 @@ public @interface RpcService {
      */
     String group() default RpcConstants.RPC_COMMON_DEFAULT_GROUP;
 
-
     /**
      * 服务权重
      */
     int weight() default RpcConstants.SERVICE_DEFAULT_WEIGHT;
+    /**
+     * 心跳间隔时间，默认30秒
+     */
+    int heartbeatInterval() default RpcConstants.RPC_COMMON_DEFAULT_HEARTBEATINTERVAL;
+
+    /**
+     * 扫描空闲连接间隔时间，默认60秒
+     */
+    int scanNotActiveChannelInterval() default RpcConstants.RPC_COMMON_DEFAULT_SCANNOTACTIVECHANNELINTERVAL;
 }
