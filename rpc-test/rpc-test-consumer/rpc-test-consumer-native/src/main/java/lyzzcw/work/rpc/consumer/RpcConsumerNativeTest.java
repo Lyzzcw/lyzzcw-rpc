@@ -37,43 +37,43 @@ public class RpcConsumerNativeTest {
         String result = demoService.hello("lzy", 29);
         log.info("result: " + result);
     }
-    @Test
-    public void test() throws InterruptedException {
-        RpcClient client = new RpcClient(
-                //                "127.0.0.1:2181",
-                "127.0.0.1:8848?namespace=1167c87c-5ea8-45b5-90d6-7964d78abe4a",
-                RpcConstants.REGISTRY_CENTER_NACOS,
-                RpcConstants.SERVICE_LOAD_BALANCER_LEAST_CONNECTIONS,
-                RpcConstants.PROXY_JAVASSIST,
-                "1.0.0",
-                "lzy",
-                RpcConstants.SERIALIZATION_PROTOSTUFF,
-                3000,
-                false,
-                false,-1,-1,2000,5);
-        DemoService demoService = client.create(DemoService.class);
-        String result = demoService.hello("lzy", 29);
-        log.info("result: " + result);
-
-        TimeUnit.MINUTES.sleep(5);
-    }
-
-    @Test
-    public void test1() throws InterruptedException, ExecutionException {
-        RpcClient client = new RpcClient(
-                "127.0.0.1",
-                RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
-                RpcConstants.SERVICE_LOAD_BALANCER_ROUND_ROBIN,
-                RpcConstants.PROXY_JDK,
-                "1.0.0",
-                "lzy",
-                "json",
-                3000,
-                false,
-                false,-1,-1,2000,5);
-        IAsyncObjectProxy proxy = client.createAsync(DemoService.class);
-        RpcFuture rpcFuture = proxy.call("hello", "lzy", new Integer(29));
-        String result = (String) rpcFuture.get();
-        log.info("result: " + result);
-    }
+//    @Test
+//    public void test() throws InterruptedException {
+//        RpcClient client = new RpcClient(
+//                //                "127.0.0.1:2181",
+//                "127.0.0.1:8848?namespace=1167c87c-5ea8-45b5-90d6-7964d78abe4a",
+//                RpcConstants.REGISTRY_CENTER_NACOS,
+//                RpcConstants.SERVICE_LOAD_BALANCER_LEAST_CONNECTIONS,
+//                RpcConstants.PROXY_JAVASSIST,
+//                "1.0.0",
+//                "lzy",
+//                RpcConstants.SERIALIZATION_PROTOSTUFF,
+//                3000,
+//                false,
+//                false,-1,-1,2000,5);
+//        DemoService demoService = client.create(DemoService.class);
+//        String result = demoService.hello("lzy", 29);
+//        log.info("result: " + result);
+//
+//        TimeUnit.MINUTES.sleep(5);
+//    }
+//
+//    @Test
+//    public void test1() throws InterruptedException, ExecutionException {
+//        RpcClient client = new RpcClient(
+//                "127.0.0.1",
+//                RpcConstants.REGISTRY_CENTER_ZOOKEEPER,
+//                RpcConstants.SERVICE_LOAD_BALANCER_ROUND_ROBIN,
+//                RpcConstants.PROXY_JDK,
+//                "1.0.0",
+//                "lzy",
+//                "json",
+//                3000,
+//                false,
+//                false,-1,-1,2000,5);
+//        IAsyncObjectProxy proxy = client.createAsync(DemoService.class);
+//        RpcFuture rpcFuture = proxy.call("hello", "lzy", new Integer(29));
+//        String result = (String) rpcFuture.get();
+//        log.info("result: " + result);
+//    }
 }

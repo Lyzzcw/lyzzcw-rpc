@@ -10,9 +10,15 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
+import lyzzcw.work.rpc.cache.result.CacheResultKey;
 import lyzzcw.work.rpc.codec.RpcDecoder;
 import lyzzcw.work.rpc.codec.RpcEncoder;
 import lyzzcw.work.rpc.constant.RpcConstants;
+import lyzzcw.work.rpc.protocol.RpcProtocol;
+import lyzzcw.work.rpc.protocol.enums.RpcType;
+import lyzzcw.work.rpc.protocol.header.RpcHeader;
+import lyzzcw.work.rpc.protocol.request.RpcRequest;
+import lyzzcw.work.rpc.protocol.response.RpcResponse;
 import lyzzcw.work.rpc.provider.common.handler.RpcProviderHandler;
 import lyzzcw.work.rpc.provider.common.manager.ProviderConnectionManager;
 import lyzzcw.work.rpc.provider.common.server.api.Server;
@@ -53,26 +59,34 @@ public class BaseServer implements Server {
     private int heartbeatInterval = 30000;
     //扫描并移除空闲连接时间，默认60秒
     private int scanNotActiveChannelInterval = 60000;
+    //结果缓存过期时长，默认5秒
+    private int resultCacheExpire = 5000;
+    //是否开启结果缓存
+    private boolean enableResultCache;
 
-
-    public BaseServer(String serverAddress,String registryAddress,
-                      String registryType,String registryLoadBalanceType,
+    public BaseServer(String serverAddress, String registryAddress,
+                      String registryType, String registryLoadBalanceType,
                       String reflectType,
-                      int heartbeatInterval, int scanNotActiveChannelInterval) {
-        if (!StringUtils.isEmpty(serverAddress)){
+                      int heartbeatInterval, int scanNotActiveChannelInterval,
+                      boolean enableResultCache,int resultCacheExpire) {
+        if (!StringUtils.isEmpty(serverAddress)) {
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
             this.port = Integer.parseInt(serverArray[1]);
         }
         this.reflectType = reflectType;
         this.registryService = this.getRegistryService(registryAddress,
-                registryType,registryLoadBalanceType);
-        if (heartbeatInterval > 0){
+                registryType, registryLoadBalanceType);
+        if (heartbeatInterval > 0) {
             this.heartbeatInterval = heartbeatInterval;
         }
-        if (scanNotActiveChannelInterval > 0){
+        if (scanNotActiveChannelInterval > 0) {
             this.scanNotActiveChannelInterval = scanNotActiveChannelInterval;
         }
+        if(resultCacheExpire > 0){
+            this.resultCacheExpire = resultCacheExpire;
+        }
+        this.enableResultCache = enableResultCache;
     }
 
     /**
@@ -85,7 +99,7 @@ public class BaseServer implements Server {
             log.info("=============scanNotActiveChannel============");
             ProviderConnectionManager.scanNotActiveChannel();
         }, 10, scanNotActiveChannelInterval, TimeUnit.MILLISECONDS);
-        executorService.scheduleAtFixedRate(()->{
+        executorService.scheduleAtFixedRate(() -> {
             log.info("=============broadcastPingMessageFromConsumer============");
             ProviderConnectionManager.broadcastPingMessageFromProvider();
         }, 3, heartbeatInterval, TimeUnit.MILLISECONDS);
@@ -93,6 +107,7 @@ public class BaseServer implements Server {
 
     /**
      * 创建服务注册与发现的实例
+     *
      * @param registryAddress
      * @param registryType
      * @return
@@ -103,11 +118,11 @@ public class BaseServer implements Server {
         //TODO 后续拓展支持SPI
         RegistryService registryService = null;
         try {
-            registryService = ExtensionLoader.getExtension(RegistryService.class,registryType);
+            registryService = ExtensionLoader.getExtension(RegistryService.class, registryType);
             registryService.init(new RegistryConfig(registryAddress,
-                    registryType,registryLoadBalanceType));
+                    registryType, registryLoadBalanceType));
         } catch (Exception e) {
-            log.error("registry service init error",e);
+            log.error("registry service init error", e);
         }
         return registryService;
     }
@@ -124,8 +139,8 @@ public class BaseServer implements Server {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
 
-                            ch.pipeline().addLast(RpcConstants.CODEC_DECODER,new RpcDecoder());
-                            ch.pipeline().addLast(RpcConstants.CODEC_ENCODER,new RpcEncoder());
+                            ch.pipeline().addLast(RpcConstants.CODEC_DECODER, new RpcDecoder());
+                            ch.pipeline().addLast(RpcConstants.CODEC_ENCODER, new RpcEncoder());
                             /**
                              * Netty中的IdleStateHandler对象本质上是一个Handler处理器，配置在Netty的责任链里面，当发送请求或者收到响应时，都会经过该对象处理。
                              * 在双方通讯开始后该对象会创建一些空闲检测定时器，用于检测读事件（收到请求会触发读事件）和写事件（连接、发送请求会触发写事件）。
@@ -141,8 +156,8 @@ public class BaseServer implements Server {
                              */
                             ch.pipeline().addLast(RpcConstants.CODEC_SERVER_IDLE_HANDLER,
                                     new IdleStateHandler(0, 0, heartbeatInterval, TimeUnit.MILLISECONDS));
-                            ch.pipeline().addLast(RpcConstants.CODEC_HANDLER,new RpcProviderHandler
-                                    (reflectType, handlerMap));
+                            ch.pipeline().addLast(RpcConstants.CODEC_HANDLER, new RpcProviderHandler
+                                    (reflectType,enableResultCache,resultCacheExpire,handlerMap));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)
@@ -158,7 +173,7 @@ public class BaseServer implements Server {
             // 在这个例子中，这不会发生，但你可以优雅地关闭你的服务器。
             f.channel().closeFuture().sync();
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("RPC Server start error", e);
         } finally {
             workerGroup.shutdownGracefully();
