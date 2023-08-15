@@ -24,6 +24,7 @@ import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
 import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -53,6 +54,8 @@ public class RpcConsumer implements Consumer {
     private int retryInterval = 1000;
     //重试次数
     private int retryTimes = 3;
+    //当前重试次数
+    private volatile int currentConnectRetryTimes = 0;
 
     private void startHeartbeat() {
         executorService = Executors.newScheduledThreadPool(2);
@@ -110,6 +113,11 @@ public class RpcConsumer implements Consumer {
         executorService.shutdown();
     }
 
+    /**
+     * 断线重连
+     * @param channel
+     * @throws InterruptedException
+     */
     public void reconnect(Channel channel) throws InterruptedException {
         InetSocketAddress socketAddress = (InetSocketAddress) channel.remoteAddress();
         String ip = socketAddress.getAddress().getHostAddress();
@@ -117,23 +125,7 @@ public class RpcConsumer implements Consumer {
         ServiceMeta serviceMeta = new ServiceMeta();
         serviceMeta.setServiceAddr(ip);
         serviceMeta.setServicePort(port);
-        RpcConsumerHandler handler = RpcConsumerHandlerHelper.get(serviceMeta);
-        if(handler != null){
-            handler.close();
-            ChannelFuture channelFuture = bootstrap.connect(ip,port).sync();
-            channelFuture.addListener((ChannelFutureListener) listener -> {
-                if(listener.isSuccess()){
-                    log.info("Successfully reconnected rpc server {} on port {}", ip, port);
-                    ConnectionsContext.add(serviceMeta);
-                }else{
-                    log.error("Failure connecting rpc server {} on port {}", ip, port);
-                    channelFuture.cause().printStackTrace();
-                    eventLoopGroup.shutdownGracefully();
-                }
-            });
-            handler = channelFuture.channel().pipeline().get(RpcConsumerHandler.class);
-            RpcConsumerHandlerHelper.put(serviceMeta,handler);
-        }
+        getRpcConsumerHandlerWithRetry(serviceMeta);
     }
 
     @Override
@@ -145,41 +137,15 @@ public class RpcConsumer implements Consumer {
         Object[] params = request.getParameters();
         int invokeHashCode = (params == null || params.length <= 0) ? serviceKey.hashCode() : params[0].hashCode();
         ServiceMeta serviceMeta = this.getServiceMeta(registryService, serviceKey, invokeHashCode);
-        if(serviceMeta != null){
-            RpcConsumerHandler handler = RpcConsumerHandlerHelper.get(serviceMeta);
-            //缓存中无RpcClientHandler
-            if(handler == null){
-                handler = getRpcConsumerHandler(serviceMeta);
-                RpcConsumerHandlerHelper.put(serviceMeta,handler);
-            }else if(!handler.getChannel().isActive()){
-                //缓存中存在RpcClientHandler ,但不活跃
-                handler.close();
-                handler = getRpcConsumerHandler(serviceMeta);
-                RpcConsumerHandlerHelper.put(serviceMeta,handler);
-            }
-            return handler.sendRequest(protocol);
+        RpcConsumerHandler handler = null;
+        if (serviceMeta != null){
+            handler = getRpcConsumerHandlerWithRetry(serviceMeta);
         }
-        return null;
-    }
-
-    /**
-     * 创建连接并返回RpcClientHandler
-     */
-    private RpcConsumerHandler getRpcConsumerHandler(ServiceMeta serviceMeta) throws InterruptedException {
-        ChannelFuture channelFuture = bootstrap.connect(serviceMeta.getServiceAddr()
-                ,serviceMeta.getServicePort()).sync();
-        channelFuture.addListener((ChannelFutureListener) listener -> {
-            if(listener.isSuccess()){
-                log.info("Successfully connected rpc server {} on port {}", serviceMeta);
-                //添加连接信息，在服务消费端记录每个服务提供者实例的连接次数
-                ConnectionsContext.add(serviceMeta);
-            }else{
-                log.error("Failure connecting rpc server {} on port {}", serviceMeta);
-                channelFuture.cause().printStackTrace();
-                eventLoopGroup.shutdownGracefully();
-            }
-        });
-        return channelFuture.channel().pipeline().get(RpcConsumerHandler.class);
+        RpcFuture rpcFuture = null;
+        if (handler != null){
+            rpcFuture = handler.sendRequest(protocol);
+        }
+        return rpcFuture;
     }
 
     /**
@@ -213,4 +179,66 @@ public class RpcConsumer implements Consumer {
         return serviceMeta;
     }
 
+    /**
+     * 获取RpcConsumerHandler
+     */
+    private RpcConsumerHandler getRpcConsumerHandlerWithRetry(ServiceMeta serviceMeta) throws InterruptedException{
+        log.info("Service consumers connect service providers...");
+        RpcConsumerHandler handler = null;
+        try {
+            handler = this.getRpcConsumerHandlerWithCache(serviceMeta);
+        }catch (Exception e){
+            //连接异常
+            if (e instanceof ConnectException){
+                //启动重试机制
+                if (handler == null) {
+                    if (currentConnectRetryTimes < retryTimes){
+                        currentConnectRetryTimes++;
+                        log.info("The service consumer connects to the service provider for the [{}] retry...", currentConnectRetryTimes);
+                        handler = this.getRpcConsumerHandlerWithRetry(serviceMeta);
+                        Thread.sleep(retryInterval);
+                    }
+                }
+            }
+        }
+        return handler;
+    }
+
+    /**
+     * 从缓存中获取RpcConsumerHandler，缓存中没有，再创建
+     */
+    private RpcConsumerHandler getRpcConsumerHandlerWithCache(ServiceMeta serviceMeta) throws InterruptedException{
+        RpcConsumerHandler handler = RpcConsumerHandlerHelper.get(serviceMeta);
+        //缓存中无RpcClientHandler
+        if (handler == null){
+            handler = getRpcConsumerHandler(serviceMeta);
+            RpcConsumerHandlerHelper.put(serviceMeta, handler);
+        }else if (!handler.getChannel().isActive()){  //缓存中存在RpcClientHandler，但不活跃
+            handler.close();
+            handler = getRpcConsumerHandler(serviceMeta);
+            RpcConsumerHandlerHelper.put(serviceMeta, handler);
+        }
+        return handler;
+    }
+
+    /**
+     * 创建连接并返回RpcClientHandler
+     */
+    private RpcConsumerHandler getRpcConsumerHandler(ServiceMeta serviceMeta) throws InterruptedException {
+        ChannelFuture channelFuture = bootstrap.connect(serviceMeta.getServiceAddr(), serviceMeta.getServicePort()).sync();
+        channelFuture.addListener((ChannelFutureListener) listener -> {
+            if (channelFuture.isSuccess()) {
+                log.info("connect rpc server {} on port {} success.", serviceMeta.getServiceAddr(), serviceMeta.getServicePort());
+                //添加连接信息，在服务消费者端记录每个服务提供者实例的连接次数
+                ConnectionsContext.add(serviceMeta);
+                //连接成功，将当前连接重试次数设置为0
+                currentConnectRetryTimes = 0;
+            } else {
+                log.error("connect rpc server {} on port {} failed.", serviceMeta.getServiceAddr(), serviceMeta.getServicePort());
+                channelFuture.cause().printStackTrace();
+                eventLoopGroup.shutdownGracefully();
+            }
+        });
+        return channelFuture.channel().pipeline().get(RpcConsumerHandler.class);
+    }
 }
