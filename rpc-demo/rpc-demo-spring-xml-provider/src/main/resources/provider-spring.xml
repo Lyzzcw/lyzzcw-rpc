@@ -15,7 +15,7 @@
         <constructor-arg name="serverAddress" value="${server.address}"/>
         <constructor-arg name="registryAddress" value="${registry.address}"/>
         <constructor-arg name="registryType" value="${registry.type}"/>
-        <constructor-arg name="registryLoadBalanceType" value="${registry.loadbalance.type}"/>
+        <constructor-arg name="registryLoadBalanceType" value="${registry.loadbalancer.type}"/>
         <constructor-arg name="reflectType" value="${reflect.type}"/>
         <constructor-arg name="heartbeatInterval" value="${server.heartbeatInterval}"/>
         <constructor-arg name="scanNotActiveChannelInterval" value="${server.scanNotActiveChannelInterval}"/>
