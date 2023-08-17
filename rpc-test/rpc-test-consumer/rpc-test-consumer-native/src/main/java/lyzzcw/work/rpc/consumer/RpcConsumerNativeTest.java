@@ -34,7 +34,7 @@ public class RpcConsumerNativeTest {
                 false,5000,-1,
         2000,5,
                 true,100000,
-                true,"127.0.0.1:27880");
+                true,"127.0.0.1:27880",true);
         DemoService demoService = client.create(DemoService.class);
         for (int i = 0; i < 2 ;i++) {
             String result = demoService.hello("lzy", 29);

@@ -17,6 +17,7 @@ package lyzzcw.work.rpc.common.scanner.reference;
 
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.annotation.RpcReference;
+import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
 import lyzzcw.work.rpc.common.scanner.ClassScanner;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -52,11 +53,16 @@ public class RpcReferenceScanner extends ClassScanner {
                     if (rpcReference != null){
                         //TODO 处理后续逻辑，将@RpcReference注解标注的接口引用代理对象，放入全局缓存中
                         log.info("当前标注了@RpcReference注解的字段名称===>>> " + field.getName());
+                        log.info("当前标注了@RpcReference注解的字段引用类型===>>> " + field.getType().getName());
                         log.info("@RpcReference注解上标注的属性信息如下：");
                         log.info("version===>>> " + rpcReference.version());
                         log.info("group===>>> " + rpcReference.group());
                         log.info("registryType===>>> " + rpcReference.registryType());
                         log.info("registryAddress===>>> " + rpcReference.registryAddress());
+                        String key = RpcServiceHelper.buildServiceKey(field.getType().getName(),
+                                rpcReference.version(),rpcReference.group());
+                        RpcReferenceContext.put(key,rpcReference);
+                        log.info("rpc reference context:{}",RpcReferenceContext.getInstance());
                     }
                 });
             } catch (Exception e) {

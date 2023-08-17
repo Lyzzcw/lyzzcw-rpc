@@ -8,9 +8,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
+import lyzzcw.work.rpc.annotation.RpcReference;
 import lyzzcw.work.rpc.common.exception.RpcException;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
 import lyzzcw.work.rpc.common.ip.IpUtils;
+import lyzzcw.work.rpc.common.scanner.reference.RpcReferenceContext;
 import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.consumer.common.handler.RpcConsumerHandler;
 import lyzzcw.work.rpc.consumer.common.helper.RpcConsumerHandlerHelper;
@@ -28,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -64,13 +67,15 @@ public class RpcConsumer implements Consumer {
     private boolean enableDirectServer = false;
     //直连服务的地址
     private String directServerUrl;
+    //是否开启延迟连接(懒加载，需要时在发起连接)
+    private boolean enableDelayConnection = true;
+    //未开启延迟连接时，是否已经初始化连接
+    private volatile boolean initConnection = false;
 
     private RpcConsumer(){
         bootstrap = new Bootstrap();
         eventLoopGroup = new NioEventLoopGroup(4);
         localIp = IpUtils.getLocalHostIp();
-        //开启心跳
-        this.startHeartbeat();
     }
 
     public RpcConsumer buildNettyGroup(){
@@ -84,6 +89,38 @@ public class RpcConsumer implements Consumer {
                     .channel(NioSocketChannel.class)
                     .handler(new RpcConsumerInitializer(heartbeatInterval,concurrentThreadPool));
         }
+        return this;
+    }
+
+    public void initConnection(RegistryService registryService){
+        //未开启延迟连接，并且未初始化连接
+        if (!enableDelayConnection && !initConnection){
+            //遍历通过RpcReference注解存在缓存中的服务注册信息，通过服务名称去注册中心中拿到provider的服务地址
+            //在项目初始化时建立netty连接
+            Map<String, Object> cache =  RpcReferenceContext.getInstance();
+            cache.forEach((key,value) -> {
+                RpcReference rpcReference = (RpcReference)value;
+                int h;
+                int invokeHashCode = (rpcReference == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+                try {
+                    ServiceMeta serviceMeta = this.getDirectServiceMetaOrWithRetry(registryService, key, invokeHashCode);
+                    if (serviceMeta != null){
+                        this.getRpcConsumerHandlerWithRetry(serviceMeta);
+                    }
+                    this.initConnection = true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+        }
+        //开启心跳
+        this.startHeartbeat();
+    }
+
+
+    public RpcConsumer setEnableDelayConnection(boolean enableDelayConnection) {
+        this.enableDelayConnection = enableDelayConnection;
         return this;
     }
 
