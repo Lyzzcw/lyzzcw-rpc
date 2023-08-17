@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author binghe(公众号 : 冰河技术)
+ * @author lzy
  * @version 1.0.0
  * @description 测试服务消费者整合Spring XML
  */
