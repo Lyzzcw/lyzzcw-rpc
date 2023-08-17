@@ -91,13 +91,24 @@ public class RpcClient {
      */
     private boolean enableDelayConnection;
 
-    public RpcClient(String registryAddress, String registryType,String registryLoadBalanceType,
-                     String proxy, String serviceVersion, String serviceGroup,
-                     String serializationType, long timeout, boolean async,
-                     boolean oneway, int heartbeatInterval, int scanNotActiveChannelInterval,
-                     int retryInterval, int retryTimes,
-                     boolean enableResultCache, int resultCacheExpire,
-                     boolean enableDirectServer, String directServerUrl,
+    public RpcClient(String registryAddress,
+                     String registryType,
+                     String loadBalanceType,
+                     String proxy,
+                     String serviceVersion,
+                     String serviceGroup,
+                     String serializationType,
+                     long timeout,
+                     boolean async,
+                     boolean oneway,
+                     int heartbeatInterval,
+                     int scanNotActiveChannelInterval,
+                     int retryInterval,
+                     int retryTimes,
+                     boolean enableResultCache,
+                     int resultCacheExpire,
+                     boolean enableDirectServer,
+                     String directServerUrl,
                      boolean enableDelayConnection) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
@@ -106,7 +117,7 @@ public class RpcClient {
         this.async = async;
         this.oneway = oneway;
         this.registryService = this.getRegistryService(registryAddress,
-                registryType,registryLoadBalanceType);
+                registryType,loadBalanceType);
         this.proxy = proxy;
         this.heartbeatInterval = heartbeatInterval;
         this.scanNotActiveChannelInterval = scanNotActiveChannelInterval;
