@@ -30,6 +30,10 @@ public final class SpringBootProviderConfig {
      */
     private String serverAddress;
     /**
+     * 服务注册地址
+     */
+    private String serverRegistryAddress;
+    /**
      * 注册中心地址
      */
     private String registryAddress;

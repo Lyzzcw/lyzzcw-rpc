@@ -3,9 +3,9 @@ server:
 rpc:
   provider:
     # rpc server
-    serverAddress: 127.0.0.1:20880
+    serverAddress: 0.0.0.0:20880
     # serverRegistryAddress
-    serverRegistryAddress: 127.0.0.1:20881
+    serverRegistryAddress: 127.0.0.1:20880
     # zookeeper server
     registryAddress: 127.0.0.1:2181
     # registry center type, zookeeper/nacos/apoll/etcd/eureka

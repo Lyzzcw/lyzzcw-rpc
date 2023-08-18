@@ -38,16 +38,27 @@ import java.util.Map;
 @Slf4j
 public class RpcSpringServer extends BaseServer implements ApplicationContextAware, InitializingBean {
 
-    public RpcSpringServer(String serverAddress,String registryAddress,
-                           String registryType,String registryLoadBalanceType,
+    public RpcSpringServer(String serverAddress,
+                           String serverRegistryAddress,
+                           String registryAddress,
+                           String registryType,
+                           String registryLoadBalanceType,
                            String reflectType,
-                           int heartbeatInterval, int scanNotActiveChannelInterval,
-                           boolean enableResultCache,int resultCacheExpire) {
+                           int heartbeatInterval,
+                           int scanNotActiveChannelInterval,
+                           boolean enableResultCache,
+                           int resultCacheExpire) {
         //调用父类构造方法
-        super(serverAddress,registryAddress,
-                registryType,registryLoadBalanceType,
-                reflectType,heartbeatInterval,scanNotActiveChannelInterval,
-                enableResultCache,resultCacheExpire);
+        super(serverAddress,
+                serverRegistryAddress,
+                registryAddress,
+                registryType,
+                registryLoadBalanceType,
+                reflectType,
+                heartbeatInterval,
+                scanNotActiveChannelInterval,
+                enableResultCache,
+                resultCacheExpire);
     }
 
     @Override
@@ -57,7 +68,7 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
             for (Object serviceBean : serviceBeanMap.values()) {
                 RpcService rpcService = serviceBean.getClass().getAnnotation(RpcService.class);
                 ServiceMeta serviceMeta = new ServiceMeta(this.getServiceName(rpcService), rpcService.version(),
-                        host, port,rpcService.group(), getWeight(rpcService.weight()));
+                        this.serverRegistryHost, this.serverRegistryPort,rpcService.group(), getWeight(rpcService.weight()));
                 handlerMap.put(RpcServiceHelper.buildServiceKey(serviceMeta.getServiceName(), serviceMeta.getServiceVersion(), serviceMeta.getServiceGroup()), serviceBean);
                 try {
                     registryService.register(serviceMeta);

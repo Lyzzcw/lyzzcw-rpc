@@ -49,6 +49,9 @@ public class BaseServer implements Server {
     protected String host = "127.0.0.1";
     //端口号
     protected int port = 27110;
+    //注册到注册中心的地址
+    protected String serverRegistryHost;
+    protected int serverRegistryPort;
     //reflect type
     private String reflectType;
     //服务注册与发现的实例
@@ -64,15 +67,28 @@ public class BaseServer implements Server {
     //是否开启结果缓存
     private boolean enableResultCache;
 
-    public BaseServer(String serverAddress, String registryAddress,
-                      String registryType, String registryLoadBalanceType,
+    public BaseServer(String serverAddress,
+                      String serverRegistryAddress,
+                      String registryAddress,
+                      String registryType,
+                      String registryLoadBalanceType,
                       String reflectType,
-                      int heartbeatInterval, int scanNotActiveChannelInterval,
-                      boolean enableResultCache,int resultCacheExpire) {
+                      int heartbeatInterval,
+                      int scanNotActiveChannelInterval,
+                      boolean enableResultCache,
+                      int resultCacheExpire) {
         if (!StringUtils.isEmpty(serverAddress)) {
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
             this.port = Integer.parseInt(serverArray[1]);
+        }
+        if (!StringUtils.isEmpty(serverRegistryAddress)){
+            String[] serverRegistryAddressArray = serverRegistryAddress.split(":");
+            this.serverRegistryHost = serverRegistryAddressArray[0];
+            this.serverRegistryPort = Integer.parseInt(serverRegistryAddressArray[1]);
+        }else{
+            this.serverRegistryHost = this.host;
+            this.serverRegistryPort = this.port;
         }
         this.reflectType = reflectType;
         this.registryService = this.getRegistryService(registryAddress,

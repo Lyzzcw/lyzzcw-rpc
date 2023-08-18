@@ -44,6 +44,9 @@ public class SpringAnnotationProviderConfig {
     @Value("${server.address}")
     private String serverAddress;
 
+    @Value("${server.registry.address}")
+    private String serverRegistryAddress;
+
     @Value("${reflect.type}")
     private String reflectType;
 
@@ -63,6 +66,7 @@ public class SpringAnnotationProviderConfig {
     public RpcSpringServer rpcSpringServer(){
         return new RpcSpringServer(
                 serverAddress,
+                serverRegistryAddress,
                 registryAddress,
                 registryType,
                 registryLoadbalancerType,
