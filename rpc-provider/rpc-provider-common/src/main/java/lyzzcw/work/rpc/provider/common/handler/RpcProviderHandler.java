@@ -42,8 +42,7 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
     /**
      * 线程池
      */
-    private final ConcurrentThreadPool concurrentThreadPool =
-            ConcurrentThreadPool.getInstance(2, 4);
+    private ConcurrentThreadPool concurrentThreadPool;
 
     /**
      * 调用采用哪种类型调用真实方法
@@ -59,8 +58,12 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
      */
     private final CacheResultManager<RpcProtocol<RpcResponse>> cacheResultManager;
 
-    public RpcProviderHandler(String reflectType, boolean enableResultCache,
-                              int resultCacheExpire,Map<String, Object> handlerMap) {
+    public RpcProviderHandler(String reflectType,
+                              boolean enableResultCache,
+                              int resultCacheExpire,
+                              int corePoolSize,
+                              int maximumPoolSize,
+                              Map<String, Object> handlerMap) {
         this.reflectInvoker = ExtensionLoader.getExtension(ReflectInvoker.class, reflectType);
         this.handlerMap = handlerMap;
         this.enableResultCache = enableResultCache;
@@ -68,6 +71,7 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
             resultCacheExpire = RpcConstants.RPC_SCAN_RESULT_CACHE_EXPIRE;
         }
         this.cacheResultManager = CacheResultManager.getInstance(resultCacheExpire, enableResultCache);
+        this.concurrentThreadPool = ConcurrentThreadPool.getInstance(corePoolSize,maximumPoolSize);
     }
 
     @Override

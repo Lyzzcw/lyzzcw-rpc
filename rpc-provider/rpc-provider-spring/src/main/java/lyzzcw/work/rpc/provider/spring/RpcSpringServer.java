@@ -47,7 +47,9 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                            int heartbeatInterval,
                            int scanNotActiveChannelInterval,
                            boolean enableResultCache,
-                           int resultCacheExpire) {
+                           int resultCacheExpire,
+                           int corePoolSize,
+                           int maximumPoolSize) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -58,7 +60,9 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                 heartbeatInterval,
                 scanNotActiveChannelInterval,
                 enableResultCache,
-                resultCacheExpire);
+                resultCacheExpire,
+                corePoolSize,
+                maximumPoolSize);
     }
 
     @Override

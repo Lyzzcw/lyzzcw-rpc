@@ -23,7 +23,9 @@ public class RpcSingleServer extends BaseServer {
                            int heartbeatInterval,
                            int scanNotActiveChannelInterval,
                            boolean enableResultCache,
-                           int resultCacheExpire) {
+                           int resultCacheExpire,
+                           int corePoolSize,
+                           int maximumPoolSize) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -34,7 +36,9 @@ public class RpcSingleServer extends BaseServer {
                 heartbeatInterval,
                 scanNotActiveChannelInterval,
                 enableResultCache,
-                resultCacheExpire);
+                resultCacheExpire,
+                corePoolSize,
+                maximumPoolSize);
         try {
             this.handlerMap =
                     RpcServiceScanner.doScannerWithRpcServiceAnnotationFilterAndRegistryService(

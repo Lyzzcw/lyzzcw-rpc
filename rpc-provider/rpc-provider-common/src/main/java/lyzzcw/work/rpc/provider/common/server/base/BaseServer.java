@@ -66,6 +66,10 @@ public class BaseServer implements Server {
     private int resultCacheExpire = 5000;
     //是否开启结果缓存
     private boolean enableResultCache;
+    //核心线程数
+    private int corePoolSize;
+    //最大线程数
+    private int maximumPoolSize;
 
     public BaseServer(String serverAddress,
                       String serverRegistryAddress,
@@ -76,7 +80,9 @@ public class BaseServer implements Server {
                       int heartbeatInterval,
                       int scanNotActiveChannelInterval,
                       boolean enableResultCache,
-                      int resultCacheExpire) {
+                      int resultCacheExpire,
+                      int corePoolSize,
+                      int maximumPoolSize) {
         if (!StringUtils.isEmpty(serverAddress)) {
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
@@ -103,6 +109,8 @@ public class BaseServer implements Server {
             this.resultCacheExpire = resultCacheExpire;
         }
         this.enableResultCache = enableResultCache;
+        this.corePoolSize = corePoolSize;
+        this.maximumPoolSize = maximumPoolSize;
     }
 
     /**
@@ -173,7 +181,12 @@ public class BaseServer implements Server {
                             ch.pipeline().addLast(RpcConstants.CODEC_SERVER_IDLE_HANDLER,
                                     new IdleStateHandler(0, 0, heartbeatInterval, TimeUnit.MILLISECONDS));
                             ch.pipeline().addLast(RpcConstants.CODEC_HANDLER, new RpcProviderHandler
-                                    (reflectType,enableResultCache,resultCacheExpire,handlerMap));
+                                    (reflectType,
+                                            enableResultCache,
+                                            resultCacheExpire,
+                                            corePoolSize,
+                                            maximumPoolSize,
+                                            handlerMap));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)

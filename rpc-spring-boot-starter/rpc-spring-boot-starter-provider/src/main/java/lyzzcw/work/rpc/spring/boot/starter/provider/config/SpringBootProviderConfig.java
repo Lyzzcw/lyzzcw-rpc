@@ -69,6 +69,15 @@ public final class SpringBootProviderConfig {
      * 结果缓存的时长
      */
     private int resultCacheExpire;
+    /**
+     * 核心线程数
+     */
+    private int corePoolSize;
+
+    /**
+     * 最大线程数
+     */
+    private int maximumPoolSize;
 
 
     public SpringBootProviderConfig() {
@@ -82,7 +91,9 @@ public final class SpringBootProviderConfig {
                                     final int heartbeatInterval,
                                     int scanNotActiveChannelInterval,
                                     final boolean enableResultCache,
-                                    final int resultCacheExpire) {
+                                    final int resultCacheExpire,
+                                    final int corePoolSize,
+                                    final int maximumPoolSize) {
         this.serverAddress = serverAddress;
         this.registryAddress = registryAddress;
         this.registryType = registryType;
@@ -94,5 +105,7 @@ public final class SpringBootProviderConfig {
         this.scanNotActiveChannelInterval = scanNotActiveChannelInterval;
         this.enableResultCache = enableResultCache;
         this.resultCacheExpire = resultCacheExpire;
+        this.corePoolSize = corePoolSize;
+        this.maximumPoolSize = maximumPoolSize;
     }
 }
