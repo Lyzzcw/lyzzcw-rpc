@@ -46,7 +46,7 @@ public class RpcConsumer implements Consumer {
     private Bootstrap bootstrap;
     private final EventLoopGroup eventLoopGroup;
     //并发处理线程池
-    private ConcurrentThreadPool concurrentThreadPool = ConcurrentThreadPool.getInstance(2,4);
+    private ConcurrentThreadPool concurrentThreadPool;
     //本地IP
     private final String localIp;
     //心跳定时任务线程池
@@ -118,6 +118,10 @@ public class RpcConsumer implements Consumer {
         this.startHeartbeat();
     }
 
+    public RpcConsumer setConcurrentThreadPool(ConcurrentThreadPool concurrentThreadPool) {
+        this.concurrentThreadPool = concurrentThreadPool;
+        return this;
+    }
 
     public RpcConsumer setEnableDelayConnection(boolean enableDelayConnection) {
         this.enableDelayConnection = enableDelayConnection;

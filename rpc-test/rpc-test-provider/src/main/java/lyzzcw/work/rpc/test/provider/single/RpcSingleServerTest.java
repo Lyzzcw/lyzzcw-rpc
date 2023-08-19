@@ -23,7 +23,7 @@ public class RpcSingleServerTest {
                 "lyzzcw.work.rpc.test",
                 RpcConstants.REFLECT_TYPE_ASM,
                 10000,-1,
-                true,100000);
+                true,100000,4,4);
         singleServer.startNettyServer();
     }
 

@@ -127,6 +127,16 @@ public class RpcReferenceBean implements FactoryBean<Object> {
      */
     private boolean enableDelayConnection;
 
+    /**
+     * 并发线程池核心线程数
+     */
+    private int corePoolSize;
+
+    /**
+     * 并发线程池最大线程数
+     */
+    private int maximumPoolSize;
+
     @Override
     public Object getObject(){
         return object;
@@ -158,7 +168,9 @@ public class RpcReferenceBean implements FactoryBean<Object> {
                 resultCacheExpire,
                 enableDirectServer,
                 directServerUrl,
-                enableDelayConnection);
+                enableDelayConnection,
+                corePoolSize,
+                maximumPoolSize);
         this.object = rpcClient.create(interfaceClass);
     }
 

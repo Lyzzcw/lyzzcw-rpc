@@ -11,6 +11,7 @@ import lyzzcw.work.rpc.registry.api.RegistryService;
 import lyzzcw.work.rpc.registry.api.config.RegistryConfig;
 import lyzzcw.work.rpc.registry.zookeeper.ZookeeperRegistryService;
 import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
+import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 
 /**
  * @author lzy
@@ -91,6 +92,11 @@ public class RpcClient {
      */
     private boolean enableDelayConnection;
 
+    /**
+     * 并发线程池
+     */
+    private ConcurrentThreadPool concurrentThreadPool;
+
     public RpcClient(String registryAddress,
                      String registryType,
                      String loadBalanceType,
@@ -109,7 +115,9 @@ public class RpcClient {
                      int resultCacheExpire,
                      boolean enableDirectServer,
                      String directServerUrl,
-                     boolean enableDelayConnection) {
+                     boolean enableDelayConnection,
+                     int corePoolSize,
+                     int maximumPoolSize) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.serviceGroup = serviceGroup;
@@ -128,6 +136,7 @@ public class RpcClient {
         this.enableDirectServer = enableDirectServer;
         this.directServerUrl = directServerUrl;
         this.enableDelayConnection = enableDelayConnection;
+        this.concurrentThreadPool = ConcurrentThreadPool.getInstance(corePoolSize,maximumPoolSize);
     }
 
     /**
@@ -178,6 +187,7 @@ public class RpcClient {
                 .setRetryTimes(retryTimes)
                 .setScanNotActiveChannelInterval(scanNotActiveChannelInterval)
                 .setEnableDelayConnection(enableDelayConnection)
+                .setConcurrentThreadPool(concurrentThreadPool)
                 .buildNettyGroup()
                 .initConnection(registryService);
     }
