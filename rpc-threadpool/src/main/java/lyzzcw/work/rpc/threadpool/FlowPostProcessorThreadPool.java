@@ -23,7 +23,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author binghe(公众号 : 冰河技术)
+ * @author lzy
  * @version 1.0.0
  * @description 流量后置处理器线程池
  */

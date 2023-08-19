@@ -28,6 +28,8 @@
         <module>rpc-demo</module>
         <module>rpc-spring-boot-starter</module>
         <module>rpc-flow</module>
+        <module>rpc-connection</module>
+        <module>rpc-disuse</module>
     </modules>
 
     <properties>
