@@ -118,6 +118,11 @@ public final class SpringBootConsumerConfig {
      */
     private int maximumPoolSize;
 
+    /**
+     * 流控方式
+     */
+    private String flowType;
+
 
     public SpringBootConsumerConfig() {
     }

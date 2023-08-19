@@ -18,6 +18,7 @@ import lyzzcw.work.rpc.consumer.common.handler.RpcConsumerHandler;
 import lyzzcw.work.rpc.consumer.common.helper.RpcConsumerHandlerHelper;
 import lyzzcw.work.rpc.consumer.common.initializer.RpcConsumerInitializer;
 import lyzzcw.work.rpc.consumer.common.manager.ConsumerConnectionManager;
+import lyzzcw.work.rpc.flow.processor.FlowPostProcessor;
 import lyzzcw.work.rpc.loadbalancer.context.ConnectionsContext;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.meta.ServiceMeta;
@@ -25,6 +26,7 @@ import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.proxy.api.consumer.Consumer;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
 import lyzzcw.work.rpc.registry.api.RegistryService;
+import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
 import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 import org.apache.commons.lang3.StringUtils;
 
@@ -71,6 +73,8 @@ public class RpcConsumer implements Consumer {
     private boolean enableDelayConnection = true;
     //未开启延迟连接时，是否已经初始化连接
     private volatile boolean initConnection = false;
+    //流控分析处理器
+    private FlowPostProcessor flowPostProcessor;
 
     private RpcConsumer(){
         bootstrap = new Bootstrap();
@@ -82,12 +86,12 @@ public class RpcConsumer implements Consumer {
         try {
             bootstrap.group(eventLoopGroup)
                     .channel(NioSocketChannel.class)
-                    .handler(new RpcConsumerInitializer(heartbeatInterval,concurrentThreadPool));
+                    .handler(new RpcConsumerInitializer(heartbeatInterval,concurrentThreadPool,flowPostProcessor));
         }catch (IllegalStateException e){
             bootstrap = new Bootstrap();
             bootstrap.group(eventLoopGroup)
                     .channel(NioSocketChannel.class)
-                    .handler(new RpcConsumerInitializer(heartbeatInterval,concurrentThreadPool));
+                    .handler(new RpcConsumerInitializer(heartbeatInterval,concurrentThreadPool,flowPostProcessor));
         }
         return this;
     }
@@ -116,6 +120,14 @@ public class RpcConsumer implements Consumer {
         }
         //开启心跳
         this.startHeartbeat();
+    }
+
+    public RpcConsumer setFlowPostProcessor(String flowType){
+        if (StringUtils.isEmpty(flowType)){
+            flowType = RpcConstants.FLOW_POST_PROCESSOR_PRINT;
+        }
+        this.flowPostProcessor = ExtensionLoader.getExtension(FlowPostProcessor.class, flowType);
+        return this;
     }
 
     public RpcConsumer setConcurrentThreadPool(ConcurrentThreadPool concurrentThreadPool) {

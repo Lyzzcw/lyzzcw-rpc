@@ -137,6 +137,11 @@ public class RpcReferenceBean implements FactoryBean<Object> {
      */
     private int maximumPoolSize;
 
+    /**
+     * 流控方式
+     */
+    private String flowType;
+
     @Override
     public Object getObject(){
         return object;
@@ -170,7 +175,8 @@ public class RpcReferenceBean implements FactoryBean<Object> {
                 directServerUrl,
                 enableDelayConnection,
                 corePoolSize,
-                maximumPoolSize);
+                maximumPoolSize,
+                flowType);
         this.object = rpcClient.create(interfaceClass);
     }
 

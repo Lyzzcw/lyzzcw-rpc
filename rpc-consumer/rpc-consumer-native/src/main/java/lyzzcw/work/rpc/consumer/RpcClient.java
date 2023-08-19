@@ -97,6 +97,11 @@ public class RpcClient {
      */
     private ConcurrentThreadPool concurrentThreadPool;
 
+    /**
+     * 流控分析处理器
+     */
+    private String flowType;
+
     public RpcClient(String registryAddress,
                      String registryType,
                      String loadBalanceType,
@@ -117,7 +122,8 @@ public class RpcClient {
                      String directServerUrl,
                      boolean enableDelayConnection,
                      int corePoolSize,
-                     int maximumPoolSize) {
+                     int maximumPoolSize,
+                     String flowType) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.serviceGroup = serviceGroup;
@@ -137,6 +143,7 @@ public class RpcClient {
         this.directServerUrl = directServerUrl;
         this.enableDelayConnection = enableDelayConnection;
         this.concurrentThreadPool = ConcurrentThreadPool.getInstance(corePoolSize,maximumPoolSize);
+        this.flowType = flowType;
     }
 
     /**
@@ -188,6 +195,7 @@ public class RpcClient {
                 .setScanNotActiveChannelInterval(scanNotActiveChannelInterval)
                 .setEnableDelayConnection(enableDelayConnection)
                 .setConcurrentThreadPool(concurrentThreadPool)
+                .setFlowPostProcessor(flowType)
                 .buildNettyGroup()
                 .initConnection(registryService);
     }
