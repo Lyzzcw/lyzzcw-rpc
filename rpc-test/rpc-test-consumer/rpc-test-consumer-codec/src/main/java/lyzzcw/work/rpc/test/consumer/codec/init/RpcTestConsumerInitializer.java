@@ -18,8 +18,8 @@ public class RpcTestConsumerInitializer extends ChannelInitializer<SocketChannel
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         ChannelPipeline cp = socketChannel.pipeline();
-        cp.addLast(new RpcEncoder());
-        cp.addLast(new RpcDecoder());
+        cp.addLast(new RpcEncoder(null));
+        cp.addLast(new RpcDecoder(null));
         cp.addLast(new RpcTestConsumerHandler());
     }
 }

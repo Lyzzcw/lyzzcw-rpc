@@ -89,4 +89,14 @@ public class ConnectionInfo implements Serializable {
     public int incrementUseCount() {
         return this.useCount.incrementAndGet();
     }
+
+    @Override
+    public String toString() {
+        return "ConnectionInfo{" +
+                "channel=" + channel +
+                ", connectionTime=" + connectionTime +
+                ", lastUseTime=" + lastUseTime +
+                ", useCount=" + useCount +
+                '}';
+    }
 }

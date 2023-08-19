@@ -50,7 +50,9 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                            int resultCacheExpire,
                            int corePoolSize,
                            int maximumPoolSize,
-                           String flowType) {
+                           String flowType,
+                           int maxConnections,
+                           String disuseStrategyType) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -64,7 +66,9 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                 resultCacheExpire,
                 corePoolSize,
                 maximumPoolSize,
-                flowType);
+                flowType,
+                maxConnections,
+                disuseStrategyType);
     }
 
     @Override

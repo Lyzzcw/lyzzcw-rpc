@@ -73,6 +73,10 @@ public class BaseServer implements Server {
     private int maximumPoolSize;
     //流控分析后置处理器
     private FlowPostProcessor flowPostProcessor;
+    //最大连接限制
+    private int maxConnections;
+    //拒绝策略类型
+    private String disuseStrategyType;
 
     public BaseServer(String serverAddress,
                       String serverRegistryAddress,
@@ -86,7 +90,9 @@ public class BaseServer implements Server {
                       int resultCacheExpire,
                       int corePoolSize,
                       int maximumPoolSize,
-                      String flowType) {
+                      String flowType,
+                      int maxConnections,
+                      String disuseStrategyType) {
         if (!StringUtils.isEmpty(serverAddress)) {
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
@@ -116,6 +122,8 @@ public class BaseServer implements Server {
         this.corePoolSize = corePoolSize;
         this.maximumPoolSize = maximumPoolSize;
         this.flowPostProcessor = ExtensionLoader.getExtension(FlowPostProcessor.class, flowType);
+        this.maxConnections = maxConnections;
+        this.disuseStrategyType = disuseStrategyType;
     }
 
     /**
@@ -191,7 +199,9 @@ public class BaseServer implements Server {
                                             resultCacheExpire,
                                             corePoolSize,
                                             maximumPoolSize,
-                                            handlerMap));
+                                            handlerMap,
+                                            maxConnections,
+                                            disuseStrategyType));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)

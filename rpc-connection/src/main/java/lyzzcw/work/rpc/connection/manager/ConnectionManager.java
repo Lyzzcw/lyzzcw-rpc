@@ -16,6 +16,7 @@
 package lyzzcw.work.rpc.connection.manager;
 
 import io.netty.channel.Channel;
+import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.common.exception.RefuseException;
 import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.disuse.api.DisuseStrategy;
@@ -33,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @version 1.0.0
  * @description 连接管理器
  */
+@Slf4j
 public class ConnectionManager {
 
     private volatile Map<String, ConnectionInfo> connectionMap = new ConcurrentHashMap<>();
@@ -85,6 +87,9 @@ public class ConnectionManager {
         info.setLastUseTime(System.currentTimeMillis());
         info.incrementUseCount();
         connectionMap.put(getKey(channel), info);
+        if(log.isDebugEnabled()){
+            log.debug("connection manager infos:{}", connectionMap);
+        }
     }
 
     /**

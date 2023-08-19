@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.cache.result.CacheResultKey;
 import lyzzcw.work.rpc.cache.result.CacheResultManager;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
+import lyzzcw.work.rpc.connection.manager.ConnectionManager;
 import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcStatus;
@@ -58,12 +59,19 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
      */
     private final CacheResultManager<RpcProtocol<RpcResponse>> cacheResultManager;
 
+    /**
+     * 连接管理器
+     */
+    private ConnectionManager connectionManager;
+
     public RpcProviderHandler(String reflectType,
                               boolean enableResultCache,
                               int resultCacheExpire,
                               int corePoolSize,
                               int maximumPoolSize,
-                              Map<String, Object> handlerMap) {
+                              Map<String, Object> handlerMap,
+                              int maxConnections,
+                              String disuseStrategyType) {
         this.reflectInvoker = ExtensionLoader.getExtension(ReflectInvoker.class, reflectType);
         this.handlerMap = handlerMap;
         this.enableResultCache = enableResultCache;
@@ -72,23 +80,27 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
         }
         this.cacheResultManager = CacheResultManager.getInstance(resultCacheExpire, enableResultCache);
         this.concurrentThreadPool = ConcurrentThreadPool.getInstance(corePoolSize,maximumPoolSize);
+        this.connectionManager = ConnectionManager.getInstance(maxConnections, disuseStrategyType);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
         ProviderChannelCache.add(ctx.channel());
+        connectionManager.add(ctx.channel());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         ProviderChannelCache.remove(ctx.channel());
+        connectionManager.remove(ctx.channel());
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         super.channelUnregistered(ctx);
         ProviderChannelCache.remove(ctx.channel());
+        connectionManager.remove(ctx.channel());
     }
 
     //netty 抛出异常
@@ -96,6 +108,7 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx,cause);
         ProviderChannelCache.remove(ctx.channel());
+        connectionManager.remove(ctx.channel());
     }
 
     @Override
@@ -105,6 +118,7 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
             Channel channel = ctx.channel();
             try{
                 log.info("IdleStateEvent triggered, close channel " + channel);
+                connectionManager.remove(ctx.channel());
                 channel.close();
             }finally {
                 channel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
@@ -121,6 +135,7 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
             log.info(k + "=" + v);
         });
         concurrentThreadPool.submit(() -> {
+            connectionManager.update(ctx.channel());
             RpcProtocol<RpcResponse> responseRpcProtocol = handlerMessage(protocol, ctx.channel());
             // 直接返回数据
             ctx.writeAndFlush(responseRpcProtocol).addListener(

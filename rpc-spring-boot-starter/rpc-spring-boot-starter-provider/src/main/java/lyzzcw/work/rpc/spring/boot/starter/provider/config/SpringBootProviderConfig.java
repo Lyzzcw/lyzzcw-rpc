@@ -84,6 +84,16 @@ public final class SpringBootProviderConfig {
      */
     private String flowType;
 
+    /**
+     * 最大连接限制
+     */
+    private int maxConnections;
+
+    /**
+     * 拒绝策略类型
+     */
+    private String disuseStrategyType;
+
 
     public SpringBootProviderConfig() {
     }
@@ -99,7 +109,9 @@ public final class SpringBootProviderConfig {
                                     final int resultCacheExpire,
                                     final int corePoolSize,
                                     final int maximumPoolSize,
-                                    final String flowType) {
+                                    final String flowType,
+                                    final int maxConnections,
+                                    final String disuseStrategyType) {
         this.serverAddress = serverAddress;
         this.registryAddress = registryAddress;
         this.registryType = registryType;
@@ -114,5 +126,7 @@ public final class SpringBootProviderConfig {
         this.corePoolSize = corePoolSize;
         this.maximumPoolSize = maximumPoolSize;
         this.flowType = flowType;
+        this.maxConnections = maxConnections;
+        this.disuseStrategyType = disuseStrategyType;
     }
 }
