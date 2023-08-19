@@ -79,6 +79,11 @@ public final class SpringBootProviderConfig {
      */
     private int maximumPoolSize;
 
+    /**
+     * 流控类型
+     */
+    private String flowType;
+
 
     public SpringBootProviderConfig() {
     }
@@ -93,7 +98,8 @@ public final class SpringBootProviderConfig {
                                     final boolean enableResultCache,
                                     final int resultCacheExpire,
                                     final int corePoolSize,
-                                    final int maximumPoolSize) {
+                                    final int maximumPoolSize,
+                                    final String flowType) {
         this.serverAddress = serverAddress;
         this.registryAddress = registryAddress;
         this.registryType = registryType;
@@ -107,5 +113,6 @@ public final class SpringBootProviderConfig {
         this.resultCacheExpire = resultCacheExpire;
         this.corePoolSize = corePoolSize;
         this.maximumPoolSize = maximumPoolSize;
+        this.flowType = flowType;
     }
 }

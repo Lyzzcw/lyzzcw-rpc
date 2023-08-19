@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lyzzcw.work.rpc.common.utils.SerializationUtils;
+import lyzzcw.work.rpc.flow.processor.FlowPostProcessor;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.header.RpcHeader;
 import lyzzcw.work.rpc.serialization.api.Serialization;
@@ -31,6 +32,13 @@ import java.util.Optional;
  * @description 实现RPC编码
  */
 public class RpcEncoder extends MessageToByteEncoder<RpcProtocol<Object>> implements RpcCodec {
+
+    //流控分析后置处理器
+    private FlowPostProcessor postProcessor;
+
+    public RpcEncoder(FlowPostProcessor postProcessor){
+        this.postProcessor = postProcessor;
+    }
 
     @Override
     protected void encode(ChannelHandlerContext ctx, RpcProtocol<Object> msg, ByteBuf byteBuf) throws Exception {
@@ -46,5 +54,8 @@ public class RpcEncoder extends MessageToByteEncoder<RpcProtocol<Object>> implem
         byte[] data = serialization.serialize(msg.getBody());
         byteBuf.writeInt(data.length);
         byteBuf.writeBytes(data);
+        //异步调用流控分析后置处理器
+        header.setMsgLen(data.length);
+        this.postFlowProcessor(postProcessor, header);
     }
 }

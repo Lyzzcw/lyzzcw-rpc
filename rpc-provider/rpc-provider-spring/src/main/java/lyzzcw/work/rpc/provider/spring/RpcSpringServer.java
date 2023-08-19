@@ -49,7 +49,8 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                            boolean enableResultCache,
                            int resultCacheExpire,
                            int corePoolSize,
-                           int maximumPoolSize) {
+                           int maximumPoolSize,
+                           String flowType) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -62,7 +63,8 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                 enableResultCache,
                 resultCacheExpire,
                 corePoolSize,
-                maximumPoolSize);
+                maximumPoolSize,
+                flowType);
     }
 
     @Override
@@ -81,6 +83,11 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                 }
             }
         }
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        AsyncStartProviderThreadPool.submit(() -> this.startNettyServer());
     }
 
     private int getWeight(int weight) {
@@ -109,8 +116,4 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
         return serviceName;
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        AsyncStartProviderThreadPool.submit(() -> this.startNettyServer());
-    }
 }

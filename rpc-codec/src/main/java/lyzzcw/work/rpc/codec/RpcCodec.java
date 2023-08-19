@@ -1,9 +1,12 @@
 package lyzzcw.work.rpc.codec;
 
 
+import lyzzcw.work.rpc.flow.processor.FlowPostProcessor;
+import lyzzcw.work.rpc.protocol.header.RpcHeader;
 import lyzzcw.work.rpc.serialization.api.Serialization;
 import lyzzcw.work.rpc.serialization.jdk.JdkSerialization;
 import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
+import lyzzcw.work.rpc.threadpool.FlowPostProcessorThreadPool;
 
 /**
  * @author lzy
@@ -20,6 +23,17 @@ public interface RpcCodec {
      */
     default Serialization getSerialization(String serializationType){
         return ExtensionLoader.getExtension(Serialization.class, serializationType);
+    }
+
+    /**
+     * 异步调用流控分析后置处理器
+     * @param postProcessor
+     * @param header
+     */
+    default void postFlowProcessor(FlowPostProcessor postProcessor, RpcHeader header){
+        FlowPostProcessorThreadPool.submit(() -> {
+            postProcessor.postRpcHeaderProcessor(header);
+        });
     }
 
 }

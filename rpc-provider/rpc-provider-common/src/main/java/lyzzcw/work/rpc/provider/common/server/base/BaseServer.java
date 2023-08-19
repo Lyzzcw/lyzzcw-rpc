@@ -14,6 +14,7 @@ import lyzzcw.work.rpc.cache.result.CacheResultKey;
 import lyzzcw.work.rpc.codec.RpcDecoder;
 import lyzzcw.work.rpc.codec.RpcEncoder;
 import lyzzcw.work.rpc.constant.RpcConstants;
+import lyzzcw.work.rpc.flow.processor.FlowPostProcessor;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
 import lyzzcw.work.rpc.protocol.header.RpcHeader;
@@ -70,6 +71,8 @@ public class BaseServer implements Server {
     private int corePoolSize;
     //最大线程数
     private int maximumPoolSize;
+    //流控分析后置处理器
+    private FlowPostProcessor flowPostProcessor;
 
     public BaseServer(String serverAddress,
                       String serverRegistryAddress,
@@ -82,7 +85,8 @@ public class BaseServer implements Server {
                       boolean enableResultCache,
                       int resultCacheExpire,
                       int corePoolSize,
-                      int maximumPoolSize) {
+                      int maximumPoolSize,
+                      String flowType) {
         if (!StringUtils.isEmpty(serverAddress)) {
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
@@ -111,6 +115,7 @@ public class BaseServer implements Server {
         this.enableResultCache = enableResultCache;
         this.corePoolSize = corePoolSize;
         this.maximumPoolSize = maximumPoolSize;
+        this.flowPostProcessor = ExtensionLoader.getExtension(FlowPostProcessor.class, flowType);
     }
 
     /**
@@ -163,8 +168,8 @@ public class BaseServer implements Server {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
 
-                            ch.pipeline().addLast(RpcConstants.CODEC_DECODER, new RpcDecoder());
-                            ch.pipeline().addLast(RpcConstants.CODEC_ENCODER, new RpcEncoder());
+                            ch.pipeline().addLast(RpcConstants.CODEC_DECODER, new RpcDecoder(flowPostProcessor));
+                            ch.pipeline().addLast(RpcConstants.CODEC_ENCODER, new RpcEncoder(flowPostProcessor));
                             /**
                              * Netty中的IdleStateHandler对象本质上是一个Handler处理器，配置在Netty的责任链里面，当发送请求或者收到响应时，都会经过该对象处理。
                              * 在双方通讯开始后该对象会创建一些空闲检测定时器，用于检测读事件（收到请求会触发读事件）和写事件（连接、发送请求会触发写事件）。

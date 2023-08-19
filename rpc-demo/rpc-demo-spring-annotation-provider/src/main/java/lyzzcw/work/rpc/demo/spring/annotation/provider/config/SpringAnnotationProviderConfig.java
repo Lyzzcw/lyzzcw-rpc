@@ -68,6 +68,8 @@ public class SpringAnnotationProviderConfig {
     @Value("${server.maximumPoolSize}")
     private int maximumPoolSize;
 
+    @Value("${server.flowType}")
+    private String flowType;
 
     @Bean
     public RpcSpringServer rpcSpringServer(){
@@ -83,6 +85,7 @@ public class SpringAnnotationProviderConfig {
                 enableResultCache,
                 resultCacheExpire,
                 corePoolSize,
-                maximumPoolSize);
+                maximumPoolSize,
+                flowType);
     }
 }

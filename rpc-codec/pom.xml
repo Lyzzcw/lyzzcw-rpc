@@ -62,5 +62,17 @@
         </dependency>
         <!-- 序列化 end -->
 
+        <!-- 流量后置控制器 start-->
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-threadpool</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-flow-print</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- 流量后置控制器 end-->
     </dependencies>
 </project>

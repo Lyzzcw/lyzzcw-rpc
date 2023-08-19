@@ -22,6 +22,7 @@ import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.common.utils.SerializationUtils;
 import lyzzcw.work.rpc.constant.RpcConstants;
+import lyzzcw.work.rpc.flow.processor.FlowPostProcessor;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
 import lyzzcw.work.rpc.protocol.header.RpcHeader;
@@ -39,6 +40,13 @@ import java.util.Optional;
  */
 @Slf4j
 public class RpcDecoder extends ByteToMessageDecoder implements RpcCodec {
+
+    //流控分析后置处理器
+    private FlowPostProcessor postProcessor;
+
+    public RpcDecoder(FlowPostProcessor postProcessor){
+        this.postProcessor = postProcessor;
+    }
 
     @Override
     public final void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -115,6 +123,9 @@ public class RpcDecoder extends ByteToMessageDecoder implements RpcCodec {
                 heartbeatRequest(out, data, header, serialization);
                 break;
         }
+        //异步调用流控分析后置处理器
+        this.postFlowProcessor(postProcessor, header);
+
     }
 
     /**

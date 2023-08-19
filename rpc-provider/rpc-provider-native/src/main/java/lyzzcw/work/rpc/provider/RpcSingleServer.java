@@ -25,7 +25,8 @@ public class RpcSingleServer extends BaseServer {
                            boolean enableResultCache,
                            int resultCacheExpire,
                            int corePoolSize,
-                           int maximumPoolSize) {
+                           int maximumPoolSize,
+                           String flowType) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -38,7 +39,8 @@ public class RpcSingleServer extends BaseServer {
                 enableResultCache,
                 resultCacheExpire,
                 corePoolSize,
-                maximumPoolSize);
+                maximumPoolSize,
+                flowType);
         try {
             this.handlerMap =
                     RpcServiceScanner.doScannerWithRpcServiceAnnotationFilterAndRegistryService(
