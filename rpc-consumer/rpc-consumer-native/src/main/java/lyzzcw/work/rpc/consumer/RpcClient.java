@@ -112,6 +112,16 @@ public class RpcClient {
      */
     private int bufferSize;
 
+    /**
+     * 反射类型
+     */
+    private String reflectType;
+
+    /**
+     * 容错类
+     */
+    private Class<?> fallbackClass;
+
 
     public RpcClient(String registryAddress,
                      String registryType,
@@ -136,7 +146,9 @@ public class RpcClient {
                      int maximumPoolSize,
                      String flowType,
                      boolean enableBuffer,
-                     int bufferSize) {
+                     int bufferSize,
+                     String reflectType,
+                     Class<?> fallbackClass) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.serviceGroup = serviceGroup;
@@ -159,6 +171,8 @@ public class RpcClient {
         this.flowType = flowType;
         this.enableBuffer = enableBuffer;
         this.bufferSize = bufferSize;
+        this.reflectType = reflectType;
+        this.fallbackClass = fallbackClass;
     }
 
     /**
@@ -182,19 +196,39 @@ public class RpcClient {
     public <T> T create(Class<T> interfaceClass) {
         this.start();
         ProxyFactory proxyFactory = ExtensionLoader.getExtension(ProxyFactory.class,proxy);
-        proxyFactory.init(new ProxyConfig(interfaceClass,serviceVersion,
-                serviceGroup, timeout,registryService,
-                RpcConsumer.getInstance(),
-                serializationType, async, oneway,enableResultCache,resultCacheExpire));
+        proxyFactory.init(
+                new ProxyConfig(
+                        interfaceClass,
+                        serviceVersion,
+                        serviceGroup,
+                        timeout,
+                        registryService,
+                        RpcConsumer.getInstance(),
+                        serializationType,
+                        async,
+                        oneway,
+                        enableResultCache,
+                        resultCacheExpire,
+                        reflectType,
+                        fallbackClass));
         return proxyFactory.getProxy(interfaceClass);
     }
 
     public <T> IAsyncObjectProxy createAsync(Class<T> interfaceClass) {
         this.start();
-        return new ObjectProxy<T>(interfaceClass, serviceVersion, serviceGroup,
-                serializationType, timeout,registryService,
+        return new ObjectProxy<T>(
+                interfaceClass,
+                serviceVersion,
+                serviceGroup,
+                serializationType,
+                timeout,registryService,
                 RpcConsumer.getInstance(),
-                async, oneway,enableResultCache,resultCacheExpire);
+                async,
+                oneway,
+                enableResultCache,
+                resultCacheExpire,
+                reflectType,
+                fallbackClass);
     }
 
     /**

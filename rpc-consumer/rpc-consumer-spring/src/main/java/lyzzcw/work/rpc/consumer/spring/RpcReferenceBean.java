@@ -152,6 +152,16 @@ public class RpcReferenceBean implements FactoryBean<Object> {
      */
     private int bufferSize;
 
+    /**
+     * 反射类型
+     */
+    private String reflectType;
+
+    /**
+     * 容错类
+     */
+    private Class<?> fallbackClass;
+
     @Override
     public Object getObject(){
         return object;
@@ -188,7 +198,9 @@ public class RpcReferenceBean implements FactoryBean<Object> {
                 maximumPoolSize,
                 flowType,
                 enableBuffer,
-                bufferSize);
+                bufferSize,
+                reflectType,
+                fallbackClass);
         this.object = rpcClient.create(interfaceClass);
     }
 

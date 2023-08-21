@@ -77,12 +77,13 @@
             <artifactId>rpc-reflect-asm</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- 反射 end-->
+
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>
             <artifactId>rpc-cache</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- 反射 end-->
 
         <!-- 淘汰策略 begin-->
         <dependency>

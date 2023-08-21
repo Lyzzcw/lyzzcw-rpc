@@ -133,6 +133,16 @@ public final class SpringBootConsumerConfig {
      */
     private int bufferSize;
 
+    /**
+     * 反射类型
+     */
+    private String reflectType;
+
+    /**
+     * 容错类
+     */
+    private Class<?> fallbackClass;
+
 
     public SpringBootConsumerConfig() {
     }
@@ -158,7 +168,9 @@ public final class SpringBootConsumerConfig {
                                     final int corePoolSize,
                                     final int maximumPoolSize,
                                     final boolean enableBuffer,
-                                    final int bufferSize) {
+                                    final int bufferSize,
+                                    final String reflectType,
+                                    final Class<?> fallbackClass) {
         this.registryAddress = registryAddress;
         this.registryType = registryType;
         this.loadBalanceType = loadBalanceType;
@@ -182,5 +194,7 @@ public final class SpringBootConsumerConfig {
         this.maximumPoolSize = maximumPoolSize;
         this.enableBuffer = enableBuffer;
         this.bufferSize = bufferSize;
+        this.reflectType = reflectType;
+        this.fallbackClass = fallbackClass;
     }
 }

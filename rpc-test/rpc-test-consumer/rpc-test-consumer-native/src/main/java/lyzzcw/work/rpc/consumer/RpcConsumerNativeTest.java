@@ -41,7 +41,9 @@ public class RpcConsumerNativeTest {
                 4,
                 RpcConstants.FLOW_POST_PROCESSOR_PRINT,
                 false,
-                0);
+                0,
+                RpcConstants.REFLECT_TYPE_CGLIB,
+                void.class);
         DemoService demoService = client.create(DemoService.class);
         for (int i = 0; i < 2 ;i++) {
             String result = demoService.hello("lzy", 29);

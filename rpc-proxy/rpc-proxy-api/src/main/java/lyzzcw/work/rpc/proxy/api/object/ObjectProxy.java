@@ -12,7 +12,10 @@ import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.proxy.api.async.IAsyncObjectProxy;
 import lyzzcw.work.rpc.proxy.api.consumer.Consumer;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
+import lyzzcw.work.rpc.reflect.api.ReflectInvoker;
 import lyzzcw.work.rpc.registry.api.RegistryService;
+import lyzzcw.work.rpc.spi.loader.ExtensionLoader;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -72,14 +75,33 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
      */
     private CacheResultManager<Object> cacheResultManager;
 
+    /**
+     * 反射调用方法
+     */
+    private ReflectInvoker reflectInvoker;
+
+    /**
+     * 容错Class类
+     */
+    private Class<?> fallbackClass;
+
 
     public ObjectProxy(Class<T> clazz) {
         this.clazz = clazz;
     }
-    public ObjectProxy(Class<T> clazz, String serviceVersion, String serviceGroup,
-                       String serializationType, long timeout, RegistryService registryService,
-                       Consumer consumer, boolean async, boolean oneway,
-                       boolean enableResultCache, int resultCacheExpire) {
+    public ObjectProxy(Class<T> clazz,
+                       String serviceVersion,
+                       String serviceGroup,
+                       String serializationType,
+                       long timeout,
+                       RegistryService registryService,
+                       Consumer consumer,
+                       boolean async,
+                       boolean oneway,
+                       boolean enableResultCache,
+                       int resultCacheExpire,
+                       String reflectType,
+                       Class<?> fallbackClass) {
         this.clazz = clazz;
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
@@ -94,6 +116,33 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
             resultCacheExpire = RpcConstants.RPC_SCAN_RESULT_CACHE_EXPIRE;
         }
         this.cacheResultManager = CacheResultManager.getInstance(resultCacheExpire, enableResultCache);
+        this.reflectInvoker = ExtensionLoader.getExtension(ReflectInvoker.class, reflectType);
+        this.fallbackClass = fallbackClass;
+    }
+
+    /**
+     * 容错class为空
+     */
+    private boolean isFallbackClassEmpty(Class<?> fallbackClass){
+        return fallbackClass == null
+                || fallbackClass == RpcConstants.DEFAULT_FALLBACK_CLASS
+                || RpcConstants.DEFAULT_FALLBACK_CLASS.equals(fallbackClass);
+    }
+
+    /**
+     * 获取容错结果
+     */
+    private Object getFallbackResult(Method method, Object[] args) {
+        try {
+            //fallbackClass不为空，则执行容错处理
+            if (this.isFallbackClassEmpty(fallbackClass)){
+                return null;
+            }
+            return reflectInvoker.invokeMethod(fallbackClass.newInstance(), fallbackClass, method.getName(), method.getParameterTypes(), args);
+        } catch (Throwable ex) {
+            log.error("get fallback result error",ex);
+        }
+        return null;
     }
 
     @Override
@@ -179,8 +228,17 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
                 }
             }
         }
-        RpcFuture rpcFuture = this.consumer.sendRequest(requestRpcProtocol,registryService);
-        return rpcFuture == null ? null : timeout > 0 ? rpcFuture.get(timeout, TimeUnit.MILLISECONDS) : rpcFuture.get();
+
+        try {
+            RpcFuture rpcFuture = this.consumer.sendRequest(requestRpcProtocol,registryService);
+            return rpcFuture == null ? null : timeout > 0 ? rpcFuture.get(timeout, TimeUnit.MILLISECONDS) : rpcFuture.get();
+        }catch (Throwable ex){
+            if(this.isFallbackClassEmpty(fallbackClass)){
+                return null;
+            }
+            return getFallbackResult(method,args);
+        }
+
     }
 
     @Override

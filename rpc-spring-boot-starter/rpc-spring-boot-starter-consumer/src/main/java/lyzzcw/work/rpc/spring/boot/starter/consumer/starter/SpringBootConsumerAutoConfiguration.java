@@ -170,6 +170,11 @@ public class SpringBootConsumerAutoConfiguration {
                 || (RpcConstants.DEFAULT_BUFFER_SIZE == referenceBean.getBufferSize() && springBootConsumerConfig.getBufferSize() > 0)){
             referenceBean.setBufferSize(springBootConsumerConfig.getBufferSize());
         }
+
+        if (StringUtils.isEmpty(referenceBean.getReflectType())
+                || (RpcConstants.DEFAULT_REFLECT_TYPE.equals(referenceBean.getReflectType()) && !StringUtils.isEmpty(springBootConsumerConfig.getReflectType()))){
+            referenceBean.setReflectType(springBootConsumerConfig.getReflectType());
+        }
         return referenceBean;
     }
 }

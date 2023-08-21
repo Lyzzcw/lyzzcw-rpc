@@ -81,11 +81,31 @@ public class ProxyConfig<T> implements Serializable {
      */
     private int resultCacheExpire;
 
+    /**
+     * 反射类型
+     */
+    private String reflectType;
 
-    public ProxyConfig(Class<T> clazz, String serviceVersion, String serviceGroup,
-                       long timeout,RegistryService registryService, Consumer consumer,
-                       String serializationType, boolean async, boolean oneway,
-                       boolean enableResultCache, int resultCacheExpire) {
+    /**
+     * 容错class
+     */
+    private Class<?> fallbackClass;
+
+
+
+    public ProxyConfig(Class<T> clazz,
+                       String serviceVersion,
+                       String serviceGroup,
+                       long timeout,
+                       RegistryService registryService,
+                       Consumer consumer,
+                       String serializationType,
+                       boolean async,
+                       boolean oneway,
+                       boolean enableResultCache,
+                       int resultCacheExpire,
+                       String reflectType,
+                       Class<?> fallbackClass) {
         this.clazz = clazz;
         this.serviceVersion = serviceVersion;
         this.serviceGroup = serviceGroup;
@@ -97,5 +117,7 @@ public class ProxyConfig<T> implements Serializable {
         this.oneway = oneway;
         this.enableResultCache = enableResultCache;
         this.resultCacheExpire = resultCacheExpire;
+        this.reflectType = reflectType;
+        this.fallbackClass = fallbackClass;
     }
 }

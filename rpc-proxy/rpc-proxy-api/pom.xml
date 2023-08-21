@@ -42,5 +42,34 @@
             <artifactId>rpc-cache</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- 反射 begin-->
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-reflect-jdk</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-reflect-cglib</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-reflect-javassist</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-reflect-bytebuddy</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-reflect-asm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- 反射 end-->
+
     </dependencies>
 </project>
