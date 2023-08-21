@@ -110,6 +110,11 @@
             <artifactId>rpc-disuse-fifo</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-disuse-lfu</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- 淘汰策略 end-->
     </dependencies>
 </project>
