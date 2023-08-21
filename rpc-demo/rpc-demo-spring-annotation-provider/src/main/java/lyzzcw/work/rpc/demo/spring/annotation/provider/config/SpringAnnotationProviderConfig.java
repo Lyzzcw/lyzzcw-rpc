@@ -77,6 +77,12 @@ public class SpringAnnotationProviderConfig {
     @Value("${server.disuseStrategyType}")
     private String disuseStrategyType;
 
+    @Value("${server.enableBuffer}")
+    private boolean enableBuffer;
+
+    @Value("${server.bufferSize}")
+    private int bufferSize;
+
     @Bean
     public RpcSpringServer rpcSpringServer(){
         return new RpcSpringServer(
@@ -94,6 +100,8 @@ public class SpringAnnotationProviderConfig {
                 maximumPoolSize,
                 flowType,
                 maxConnections,
-                disuseStrategyType);
+                disuseStrategyType,
+                enableBuffer,
+                bufferSize);
     }
 }

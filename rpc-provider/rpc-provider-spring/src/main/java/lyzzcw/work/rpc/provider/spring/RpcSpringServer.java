@@ -52,7 +52,9 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                            int maximumPoolSize,
                            String flowType,
                            int maxConnections,
-                           String disuseStrategyType) {
+                           String disuseStrategyType,
+                           boolean enableBuffer,
+                           int bufferSize) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -68,7 +70,9 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                 maximumPoolSize,
                 flowType,
                 maxConnections,
-                disuseStrategyType);
+                disuseStrategyType,
+                enableBuffer,
+                bufferSize);
     }
 
     @Override

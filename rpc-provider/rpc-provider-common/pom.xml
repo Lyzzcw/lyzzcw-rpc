@@ -131,5 +131,10 @@
             <version>${project.version}</version>
         </dependency>
         <!-- 淘汰策略 end-->
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-buffer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

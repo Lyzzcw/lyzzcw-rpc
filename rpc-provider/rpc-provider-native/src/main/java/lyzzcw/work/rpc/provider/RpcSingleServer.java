@@ -28,7 +28,9 @@ public class RpcSingleServer extends BaseServer {
                            int maximumPoolSize,
                            String flowType,
                            int maxConnections,
-                           String disuseStrategyType) {
+                           String disuseStrategyType,
+                           boolean enableBuffer,
+                           int bufferSize) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -44,7 +46,9 @@ public class RpcSingleServer extends BaseServer {
                 maximumPoolSize,
                 flowType,
                 maxConnections,
-                disuseStrategyType);
+                disuseStrategyType,
+                enableBuffer,
+                bufferSize);
         try {
             this.handlerMap =
                     RpcServiceScanner.doScannerWithRpcServiceAnnotationFilterAndRegistryService(

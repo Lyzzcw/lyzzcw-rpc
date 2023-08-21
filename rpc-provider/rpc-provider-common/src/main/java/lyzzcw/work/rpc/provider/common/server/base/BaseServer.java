@@ -77,6 +77,10 @@ public class BaseServer implements Server {
     private int maxConnections;
     //拒绝策略类型
     private String disuseStrategyType;
+    //是否开启数据缓冲
+    private boolean enableBuffer;
+    //缓冲区大小
+    private int bufferSize;
 
     public BaseServer(String serverAddress,
                       String serverRegistryAddress,
@@ -92,7 +96,9 @@ public class BaseServer implements Server {
                       int maximumPoolSize,
                       String flowType,
                       int maxConnections,
-                      String disuseStrategyType) {
+                      String disuseStrategyType,
+                      boolean enableBuffer,
+                      int bufferSize) {
         if (!StringUtils.isEmpty(serverAddress)) {
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
@@ -124,6 +130,8 @@ public class BaseServer implements Server {
         this.flowPostProcessor = ExtensionLoader.getExtension(FlowPostProcessor.class, flowType);
         this.maxConnections = maxConnections;
         this.disuseStrategyType = disuseStrategyType;
+        this.enableBuffer = enableBuffer;
+        this.bufferSize = bufferSize;
     }
 
     /**
@@ -201,7 +209,9 @@ public class BaseServer implements Server {
                                             maximumPoolSize,
                                             handlerMap,
                                             maxConnections,
-                                            disuseStrategyType));
+                                            disuseStrategyType,
+                                            enableBuffer,
+                                            bufferSize));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)

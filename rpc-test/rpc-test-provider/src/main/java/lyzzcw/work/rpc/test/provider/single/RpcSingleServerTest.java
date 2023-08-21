@@ -29,7 +29,9 @@ public class RpcSingleServerTest {
                 4,
                 RpcConstants.FLOW_POST_PROCESSOR_PRINT,
                 200,
-                RpcConstants.RPC_CONNECTION_DISUSE_STRATEGY_DEFAULT);
+                RpcConstants.RPC_CONNECTION_DISUSE_STRATEGY_DEFAULT,
+                false,
+                0);
         singleServer.startNettyServer();
     }
 

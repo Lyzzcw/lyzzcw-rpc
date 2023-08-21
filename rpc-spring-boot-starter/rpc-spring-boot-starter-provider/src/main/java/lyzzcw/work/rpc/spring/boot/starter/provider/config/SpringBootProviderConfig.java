@@ -94,6 +94,16 @@ public final class SpringBootProviderConfig {
      */
     private String disuseStrategyType;
 
+    /**
+     * 是否开启数据缓冲
+     */
+    private boolean enableBuffer;
+
+    /**
+     * 缓冲区大小
+     */
+    private int bufferSize;
+
 
     public SpringBootProviderConfig() {
     }
@@ -111,7 +121,9 @@ public final class SpringBootProviderConfig {
                                     final int maximumPoolSize,
                                     final String flowType,
                                     final int maxConnections,
-                                    final String disuseStrategyType) {
+                                    final String disuseStrategyType,
+                                    final boolean enableBuffer,
+                                    final int bufferSize) {
         this.serverAddress = serverAddress;
         this.registryAddress = registryAddress;
         this.registryType = registryType;
@@ -128,5 +140,7 @@ public final class SpringBootProviderConfig {
         this.flowType = flowType;
         this.maxConnections = maxConnections;
         this.disuseStrategyType = disuseStrategyType;
+        this.enableBuffer = enableBuffer;
+        this.bufferSize = bufferSize;
     }
 }
