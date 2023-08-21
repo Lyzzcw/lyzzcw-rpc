@@ -120,6 +120,11 @@
             <artifactId>rpc-disuse-lru</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-disuse-random</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- 淘汰策略 end-->
     </dependencies>
 </project>
