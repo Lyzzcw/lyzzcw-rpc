@@ -369,6 +369,11 @@ public class RpcConstants {
     public static final String RPC_CONNECTION_DISUSE_STRATEGY_LAST = "strategy_last";
 
     /**
+     * 先进先出淘汰策略
+     */
+    public static final String RPC_CONNECTION_DISUSE_STRATEGY_FIFO = "strategy_fifo";
+
+    /**
      * 默认的缓存区大小
      */
     public static final int DEFAULT_BUFFER_SIZE = 655350;
