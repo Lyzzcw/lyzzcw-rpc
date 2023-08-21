@@ -95,6 +95,11 @@
             <artifactId>rpc-disuse-default</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-disuse-first</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- 淘汰策略 end-->
     </dependencies>
 </project>
