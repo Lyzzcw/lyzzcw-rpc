@@ -24,7 +24,8 @@ public class UserServiceImpl {
             timeout = 30000,
             async = false,
             oneway = false,
-            enableDelayConnection = true)
+            enableDelayConnection = true,
+            fallbackClass = FallBackService.class)
     private UserService userService;
 
     public User getUser(String username,long userId) {
