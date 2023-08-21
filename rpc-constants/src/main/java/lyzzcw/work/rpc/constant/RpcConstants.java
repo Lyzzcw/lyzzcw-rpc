@@ -389,6 +389,11 @@ public class RpcConstants {
     public static final String RPC_CONNECTION_DISUSE_STRATEGY_RANDOM = "strategy_random";
 
     /**
+     * 拒绝策略
+     */
+    public static final String RPC_CONNECTION_DISUSE_STRATEGY_REFUSE = "strategy_refuse";
+
+    /**
      * 默认的缓存区大小
      */
     public static final int DEFAULT_BUFFER_SIZE = 655350;

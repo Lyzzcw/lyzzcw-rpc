@@ -20,6 +20,7 @@
         <module>rpc-disuse-lfu</module>
         <module>rpc-disuse-lru</module>
         <module>rpc-disuse-random</module>
+        <module>rpc-disuse-refuse</module>
     </modules>
 
     <properties>
@@ -36,6 +37,11 @@
         <dependency>
             <groupId>lyzzcw.work.rpc</groupId>
             <artifactId>rpc-constants</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-common</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
