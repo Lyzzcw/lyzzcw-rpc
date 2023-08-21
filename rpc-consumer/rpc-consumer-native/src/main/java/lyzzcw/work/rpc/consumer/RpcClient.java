@@ -102,6 +102,17 @@ public class RpcClient {
      */
     private String flowType;
 
+    /**
+     * 是否开启数据缓冲
+     */
+    private boolean enableBuffer;
+
+    /**
+     * 缓冲区大小
+     */
+    private int bufferSize;
+
+
     public RpcClient(String registryAddress,
                      String registryType,
                      String loadBalanceType,
@@ -123,7 +134,9 @@ public class RpcClient {
                      boolean enableDelayConnection,
                      int corePoolSize,
                      int maximumPoolSize,
-                     String flowType) {
+                     String flowType,
+                     boolean enableBuffer,
+                     int bufferSize) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.serviceGroup = serviceGroup;
@@ -144,6 +157,8 @@ public class RpcClient {
         this.enableDelayConnection = enableDelayConnection;
         this.concurrentThreadPool = ConcurrentThreadPool.getInstance(corePoolSize,maximumPoolSize);
         this.flowType = flowType;
+        this.enableBuffer = enableBuffer;
+        this.bufferSize = bufferSize;
     }
 
     /**
@@ -196,6 +211,8 @@ public class RpcClient {
                 .setEnableDelayConnection(enableDelayConnection)
                 .setConcurrentThreadPool(concurrentThreadPool)
                 .setFlowPostProcessor(flowType)
+                .setEnableBuffer(enableBuffer)
+                .setBufferSize(bufferSize)
                 .buildNettyGroup()
                 .initConnection(registryService);
     }

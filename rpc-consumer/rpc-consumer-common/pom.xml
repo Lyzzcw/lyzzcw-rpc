@@ -37,5 +37,15 @@
             <artifactId>rpc-registry-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-flow-print</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-buffer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

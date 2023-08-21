@@ -24,8 +24,12 @@ public class RpcConsumerInitializer extends ChannelInitializer<SocketChannel> {
     private ConcurrentThreadPool concurrentThreadPool;
     //流控分析处理器
     private FlowPostProcessor flowPostProcessor;
+    private boolean enableBuffer;
+    private int bufferSize;
 
     public RpcConsumerInitializer(int heartbeatInterval,
+                                  boolean enableBuffer,
+                                  int bufferSize,
                                   ConcurrentThreadPool concurrentThreadPool,
                                   FlowPostProcessor flowPostProcessor){
         if (heartbeatInterval > 0){
@@ -33,6 +37,8 @@ public class RpcConsumerInitializer extends ChannelInitializer<SocketChannel> {
         }
         this.concurrentThreadPool = concurrentThreadPool;
         this.flowPostProcessor = flowPostProcessor;
+        this.enableBuffer = enableBuffer;
+        this.bufferSize = bufferSize;
     }
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
@@ -41,6 +47,10 @@ public class RpcConsumerInitializer extends ChannelInitializer<SocketChannel> {
         cp.addLast(RpcConstants.CODEC_DECODER, new RpcDecoder(flowPostProcessor));
         cp.addLast(RpcConstants.CODEC_CLIENT_IDLE_HANDLER,
                 new IdleStateHandler(heartbeatInterval, 0, 0, TimeUnit.MILLISECONDS));
-        cp.addLast(RpcConstants.CODEC_HANDLER,new RpcConsumerHandler(concurrentThreadPool));
+        cp.addLast(RpcConstants.CODEC_HANDLER,new RpcConsumerHandler(
+                enableBuffer,
+                bufferSize,
+                concurrentThreadPool
+                ));
     }
 }

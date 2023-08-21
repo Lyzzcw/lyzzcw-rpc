@@ -9,6 +9,8 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import lyzzcw.work.rpc.buffer.cache.BufferCacheManager;
+import lyzzcw.work.rpc.buffer.object.BufferObject;
 import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.consumer.common.cache.ConsumerChannelCache;
 import lyzzcw.work.rpc.consumer.common.context.RpcContext;
@@ -20,6 +22,7 @@ import lyzzcw.work.rpc.protocol.header.RpcHeaderFactory;
 import lyzzcw.work.rpc.protocol.request.RpcRequest;
 import lyzzcw.work.rpc.protocol.response.RpcResponse;
 import lyzzcw.work.rpc.proxy.api.future.RpcFuture;
+import lyzzcw.work.rpc.threadpool.BufferCacheThreadPool;
 import lyzzcw.work.rpc.threadpool.ConcurrentThreadPool;
 import org.springframework.util.Assert;
 
@@ -41,8 +44,17 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
     private Map<Long, RpcFuture> pendingResponse = new ConcurrentHashMap<>();
     //并发处理线程池
     private ConcurrentThreadPool concurrentThreadPool;
-    public RpcConsumerHandler(ConcurrentThreadPool concurrentThreadPool){
+    //是否开启缓冲区
+    private boolean enableBuffer;
+    //缓冲区管理器
+    private BufferCacheManager<BufferObject<RpcResponse>> bufferCacheManager;
+
+    public RpcConsumerHandler(boolean enableBuffer,
+                              int bufferSize,
+                              ConcurrentThreadPool concurrentThreadPool){
         this.concurrentThreadPool = concurrentThreadPool;
+        this.enableBuffer = enableBuffer;
+        this.initBuffer(bufferSize);
     }
     //netty 激活连接
     @Override
@@ -91,22 +103,60 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
         Assert.notNull(protocol, "consumer received none protocol");
         log.info("服务消费者接收到的数据===>>>{}", JSONObject.toJSONString(protocol));
         concurrentThreadPool.submit(() -> {
-            this.handlerMessage(protocol, ctx.channel());
+            this.handlerMessage(ctx,protocol);
         });
     }
 
-    private void handlerMessage(RpcProtocol<RpcResponse> protocol, Channel channel) {
-        RpcHeader header = protocol.getHeader();
-        if (header.getMsgType() == (byte) RpcType.HEARTBEAT_PROVIDER_TO_CONSUMER_PONG.getType()){
-            this.handlerHeartbeatMessageToConsumer(protocol, channel);
-        }else if (header.getMsgType() == (byte) RpcType.HEARTBEAT_PROVIDER_TO_CONSUMER_PING.getType()){
-            this.handlerHeartbeatMessageFromProvider(protocol, channel);
-        }else if (header.getMsgType() == (byte) RpcType.RESPONSE.getType()){ //请求消息
-            this.handlerResponseMessage(protocol, header);
+    /**
+     * 初始化缓冲区数据
+     */
+    private void initBuffer(int bufferSize) {
+        //开启缓冲
+        if (enableBuffer){
+            bufferCacheManager = BufferCacheManager.getInstance(bufferSize);
+            BufferCacheThreadPool.submit(() -> {
+                consumerBufferCache();
+            });
         }
     }
 
-    private void handlerResponseMessage(RpcProtocol<RpcResponse> protocol, RpcHeader header) {
+    /**
+     * 消费缓冲区的数据
+     */
+    private void consumerBufferCache(){
+        //不断消息缓冲区的数据
+        while (true){
+            BufferObject<RpcResponse> bufferObject = this.bufferCacheManager.take();
+            if (bufferObject != null){
+                this.handlerResponseMessage(bufferObject.getProtocol());
+            }
+        }
+    }
+
+    private void handlerMessage(ChannelHandlerContext ctx,RpcProtocol<RpcResponse> protocol) {
+        RpcHeader header = protocol.getHeader();
+        if (header.getMsgType() == (byte) RpcType.HEARTBEAT_PROVIDER_TO_CONSUMER_PONG.getType()){
+            this.handlerHeartbeatMessageToConsumer(protocol, ctx.channel());
+        }else if (header.getMsgType() == (byte) RpcType.HEARTBEAT_PROVIDER_TO_CONSUMER_PING.getType()){
+            this.handlerHeartbeatMessageFromProvider(protocol, ctx.channel());
+        }else if (header.getMsgType() == (byte) RpcType.RESPONSE.getType()){ //请求消息
+            this.handlerResponseMessageOrBuffer(ctx,protocol);
+        }
+    }
+
+    /**
+     * 包含是否开启了缓冲区的响应消息
+     */
+    private void handlerResponseMessageOrBuffer(ChannelHandlerContext ctx,RpcProtocol<RpcResponse> protocol){
+        if (enableBuffer){
+            log.info("enable buffer...");
+            this.bufferCacheManager.put(new BufferObject<>(ctx, protocol));
+        }else {
+            this.handlerResponseMessage(protocol);
+        }
+    }
+
+    private void handlerResponseMessage(RpcProtocol<RpcResponse> protocol) {
         Long requestId = protocol.getHeader().getRequestId();
         RpcFuture future = pendingResponse.remove(requestId);
         Optional.ofNullable(future).ifPresent(f->{

@@ -75,6 +75,10 @@ public class RpcConsumer implements Consumer {
     private volatile boolean initConnection = false;
     //流控分析处理器
     private FlowPostProcessor flowPostProcessor;
+    //是否开启数据缓冲
+    private boolean enableBuffer;
+    //缓冲区大小
+    private int bufferSize;
 
     private RpcConsumer(){
         bootstrap = new Bootstrap();
@@ -86,12 +90,22 @@ public class RpcConsumer implements Consumer {
         try {
             bootstrap.group(eventLoopGroup)
                     .channel(NioSocketChannel.class)
-                    .handler(new RpcConsumerInitializer(heartbeatInterval,concurrentThreadPool,flowPostProcessor));
+                    .handler(new RpcConsumerInitializer(
+                            heartbeatInterval,
+                            enableBuffer,
+                            bufferSize,
+                            concurrentThreadPool,
+                            flowPostProcessor));
         }catch (IllegalStateException e){
             bootstrap = new Bootstrap();
             bootstrap.group(eventLoopGroup)
                     .channel(NioSocketChannel.class)
-                    .handler(new RpcConsumerInitializer(heartbeatInterval,concurrentThreadPool,flowPostProcessor));
+                    .handler(new RpcConsumerInitializer(
+                            heartbeatInterval,
+                            enableBuffer,
+                            bufferSize,
+                            concurrentThreadPool,
+                            flowPostProcessor));
         }
         return this;
     }
@@ -120,6 +134,16 @@ public class RpcConsumer implements Consumer {
         }
         //开启心跳
         this.startHeartbeat();
+    }
+
+    public RpcConsumer setEnableBuffer(boolean enableBuffer) {
+        this.enableBuffer = enableBuffer;
+        return this;
+    }
+
+    public RpcConsumer setBufferSize(int bufferSize) {
+        this.bufferSize = bufferSize;
+        return this;
     }
 
     public RpcConsumer setFlowPostProcessor(String flowType){
