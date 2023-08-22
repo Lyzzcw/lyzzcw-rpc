@@ -98,6 +98,18 @@ public class SpringAnnotationProviderConfig {
     @Value("${server.rateLimiterFailStrategy}")
     private String rateLimiterFailStrategy;
 
+    @Value("${server.enableFusing}")
+    private boolean enableFusing;
+
+    @Value("${server.fusingType}")
+    private String fusingType;
+
+    @Value("${server.totalFailure}")
+    private double totalFailure;
+
+    @Value("${server.fusingMilliSeconds}")
+    private int fusingMilliSeconds;
+
     @Bean
     public RpcSpringServer rpcSpringServer(){
         return new RpcSpringServer(
@@ -122,6 +134,10 @@ public class SpringAnnotationProviderConfig {
                 rateLimiterType,
                 permits,
                 milliSeconds,
-                rateLimiterFailStrategy);
+                rateLimiterFailStrategy,
+                enableFusing,
+                fusingType,
+                totalFailure,
+                fusingMilliSeconds);
     }
 }

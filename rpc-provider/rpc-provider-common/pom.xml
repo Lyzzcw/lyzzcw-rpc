@@ -155,5 +155,17 @@
             <version>${project.version}</version>
         </dependency>
         <!-- 限流 end-->
+        <!-- 熔断 begin-->
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-fusing-counter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-fusing-percent</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- 熔断 end-->
     </dependencies>
 </project>

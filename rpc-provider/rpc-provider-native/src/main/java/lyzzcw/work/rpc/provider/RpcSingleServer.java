@@ -35,7 +35,11 @@ public class RpcSingleServer extends BaseServer {
                            String rateLimiterType,
                            int permits,
                            int milliSeconds,
-                           String rateLimiterFailStrategy) {
+                           String rateLimiterFailStrategy,
+                           boolean enableFusing,
+                           String fusingType,
+                           double totalFailure,
+                           int fusingMilliSeconds) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -58,7 +62,11 @@ public class RpcSingleServer extends BaseServer {
                 rateLimiterType,
                 permits,
                 milliSeconds,
-                rateLimiterFailStrategy);
+                rateLimiterFailStrategy,
+                enableFusing,
+                fusingType,
+                totalFailure,
+                fusingMilliSeconds);
         try {
             this.handlerMap =
                     RpcServiceScanner.doScannerWithRpcServiceAnnotationFilterAndRegistryService(

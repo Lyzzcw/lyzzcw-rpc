@@ -36,7 +36,11 @@ public class RpcSingleServerTest {
                 null,
                 0,
                 0,
-                RpcConstants.RATE_LIMILTER_FAIL_STRATEGY_DIRECT);
+                RpcConstants.RATE_LIMILTER_FAIL_STRATEGY_DIRECT,
+                false,
+                "test",
+                0.00,
+                1000);
         singleServer.startNettyServer();
     }
 

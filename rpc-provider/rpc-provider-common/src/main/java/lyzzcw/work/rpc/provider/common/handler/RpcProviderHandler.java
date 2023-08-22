@@ -14,6 +14,7 @@ import lyzzcw.work.rpc.common.exception.RpcException;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
 import lyzzcw.work.rpc.connection.manager.ConnectionManager;
 import lyzzcw.work.rpc.constant.RpcConstants;
+import lyzzcw.work.rpc.fusing.api.FusingInvoker;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcStatus;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
@@ -93,6 +94,16 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
      */
     private String rateLimiterFailStrategy;
 
+    /**
+     * 是否开启熔断
+     */
+    private boolean enableFusing;
+
+    /**
+     * 熔断SPI接口
+     */
+    private FusingInvoker fusingInvoker;
+
 
     public RpcProviderHandler(String reflectType,
                               boolean enableResultCache,
@@ -108,7 +119,11 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
                               String rateLimiterType,
                               int permits,
                               int milliSeconds,
-                              String rateLimiterFailStrategy) {
+                              String rateLimiterFailStrategy,
+                              boolean enableFusing,
+                              String fusingType,
+                              double totalFailure,
+                              int fusingMilliSeconds) {
         this.reflectInvoker = ExtensionLoader.getExtension(ReflectInvoker.class, reflectType);
         this.handlerMap = handlerMap;
         this.enableResultCache = enableResultCache;
@@ -123,6 +138,8 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
         this.enableRateLimiter = enableRateLimiter;
         this.initRateLimiter(rateLimiterType, permits, milliSeconds);
         this.rateLimiterFailStrategy = rateLimiterFailStrategy;
+        this.enableFusing = enableFusing;
+        this.initFusing(fusingType, totalFailure, fusingMilliSeconds);
     }
 
     @Override
@@ -185,6 +202,17 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
                 this.submitRequest(ctx, protocol);
             }
         });
+    }
+
+    /**
+     * 初始化熔断SPI接口
+     */
+    private void initFusing(String fusingType, double totalFailure, int fusingMilliSeconds) {
+        if (enableFusing){
+            fusingType = StringUtils.isEmpty(fusingType) ? RpcConstants.DEFAULT_FUSING_INVOKER : fusingType;
+            this.fusingInvoker = ExtensionLoader.getExtension(FusingInvoker.class, fusingType);
+            this.fusingInvoker.init(totalFailure, fusingMilliSeconds);
+        }
     }
 
     /**
@@ -349,7 +377,7 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
         if (enableResultCache){
             return handlerRequestMessageCache(protocol, header);
         }
-        return handlerRequestMessage(protocol, header);
+        return handlerRequestMessageWithFusing(protocol, header);
     }
 
     /**
@@ -363,7 +391,7 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
             if(log.isDebugEnabled()){
                 log.debug("Cache misses...");
             }
-            responseRpcProtocol = handlerRequestMessage(protocol, header);
+            responseRpcProtocol = handlerRequestMessageWithFusing(protocol, header);
             //设置保存的时间
             cacheKey.setCacheTimeStamp(System.currentTimeMillis());
             cacheResultManager.put(cacheKey, responseRpcProtocol);
@@ -378,6 +406,45 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
         return responseRpcProtocol;
     }
 
+    /**
+     * 结合服务熔断请求方法
+     */
+    private RpcProtocol<RpcResponse> handlerRequestMessageWithFusing(RpcProtocol<RpcRequest> protocol, RpcHeader header){
+        if (enableFusing){
+            return handlerFusingRequestMessage(protocol, header);
+        }else {
+            return handlerRequestMessage(protocol, header);
+        }
+    }
+
+
+    /**
+     * 开启熔断策略时调用的方法
+     */
+    private RpcProtocol<RpcResponse> handlerFusingRequestMessage(RpcProtocol<RpcRequest> protocol, RpcHeader header){
+        //如果触发了熔断的规则，则直接返回降级处理数据
+        if (fusingInvoker.invokeFusingStrategy()){
+            return handlerFallbackMessage(protocol);
+        }
+        //请求计数加1
+        fusingInvoker.incrementCount();
+
+        //调用handlerRequestMessage()方法获取数据
+        RpcProtocol<RpcResponse> responseRpcProtocol = handlerRequestMessage(protocol, header);
+        if (responseRpcProtocol == null) return null;
+        //如果是调用失败，则失败次数加1
+        if (responseRpcProtocol.getHeader().getStatus() == (byte) RpcStatus.FAIL.getCode()){
+            fusingInvoker.markFailed();
+        }else {
+            fusingInvoker.markSuccess();
+        }
+        return responseRpcProtocol;
+    }
+
+    /**
+     *
+     * 处理请求消息
+     */
     private RpcProtocol<RpcResponse> handlerRequestMessage(RpcProtocol<RpcRequest> protocol, RpcHeader header) {
         RpcRequest request = protocol.getBody();
         if (log.isDebugEnabled()) {
