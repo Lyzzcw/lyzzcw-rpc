@@ -430,6 +430,11 @@ public class RpcConstants {
     public static final String DEFAULT_RATELIMITER_SEMAPHORE = "semaphore";
 
     /**
+     * 基于guava限流策略
+     */
+    public static final String DEFAULT_RATELIMITER_GUAVA = "guava";
+
+    /**
      * 默认限流阈值
      */
     public static final int DEFAULT_RATELIMITER_PERMITS = 100;

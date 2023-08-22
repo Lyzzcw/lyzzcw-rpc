@@ -149,6 +149,11 @@
             <artifactId>rpc-ratelimiter-semaphore</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-ratelimiter-guava</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- 限流 end-->
     </dependencies>
 </project>
