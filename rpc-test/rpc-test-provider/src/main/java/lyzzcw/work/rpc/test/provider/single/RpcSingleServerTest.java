@@ -31,6 +31,10 @@ public class RpcSingleServerTest {
                 200,
                 RpcConstants.RPC_CONNECTION_DISUSE_STRATEGY_DEFAULT,
                 false,
+                0,
+                false,
+                null,
+                0,
                 0);
         singleServer.startNettyServer();
     }

@@ -137,5 +137,13 @@
             <artifactId>rpc-buffer</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- 限流 begin-->
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-ratelimiter-counter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- 限流 end-->
     </dependencies>
 </project>

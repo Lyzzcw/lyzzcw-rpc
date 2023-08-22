@@ -55,7 +55,11 @@ public class SpringBootProviderAutoConfiguration {
                 springBootProviderConfig.getMaxConnections(),
                 springBootProviderConfig.getDisuseStrategyType(),
                 springBootProviderConfig.isEnableBuffer(),
-                springBootProviderConfig.getBufferSize()
+                springBootProviderConfig.getBufferSize(),
+                springBootProviderConfig.isEnableRateLimiter(),
+                springBootProviderConfig.getRateLimiterType(),
+                springBootProviderConfig.getPermits(),
+                springBootProviderConfig.getMilliSeconds()
                 );
     }
 }

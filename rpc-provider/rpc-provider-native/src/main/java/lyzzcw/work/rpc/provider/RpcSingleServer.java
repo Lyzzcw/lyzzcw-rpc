@@ -30,7 +30,11 @@ public class RpcSingleServer extends BaseServer {
                            int maxConnections,
                            String disuseStrategyType,
                            boolean enableBuffer,
-                           int bufferSize) {
+                           int bufferSize,
+                           boolean enableRateLimiter,
+                           String rateLimiterType,
+                           int permits,
+                           int milliSeconds) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -48,7 +52,11 @@ public class RpcSingleServer extends BaseServer {
                 maxConnections,
                 disuseStrategyType,
                 enableBuffer,
-                bufferSize);
+                bufferSize,
+                enableRateLimiter,
+                rateLimiterType,
+                permits,
+                milliSeconds);
         try {
             this.handlerMap =
                     RpcServiceScanner.doScannerWithRpcServiceAnnotationFilterAndRegistryService(
