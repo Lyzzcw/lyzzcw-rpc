@@ -10,6 +10,7 @@ import lyzzcw.work.rpc.buffer.object.BufferObject;
 import lyzzcw.work.rpc.cache.result.CacheResultKey;
 import lyzzcw.work.rpc.cache.result.CacheResultManager;
 import lyzzcw.work.rpc.common.exception.RefuseException;
+import lyzzcw.work.rpc.common.exception.RpcException;
 import lyzzcw.work.rpc.common.helper.RpcServiceHelper;
 import lyzzcw.work.rpc.connection.manager.ConnectionManager;
 import lyzzcw.work.rpc.constant.RpcConstants;
@@ -87,6 +88,12 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
      */
     private RateLimiterInvoker rateLimiterInvoker;
 
+    /**
+     * 当限流失败时的处理策略
+     */
+    private String rateLimiterFailStrategy;
+
+
     public RpcProviderHandler(String reflectType,
                               boolean enableResultCache,
                               int resultCacheExpire,
@@ -100,7 +107,8 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
                               boolean enableRateLimiter,
                               String rateLimiterType,
                               int permits,
-                              int milliSeconds) {
+                              int milliSeconds,
+                              String rateLimiterFailStrategy) {
         this.reflectInvoker = ExtensionLoader.getExtension(ReflectInvoker.class, reflectType);
         this.handlerMap = handlerMap;
         this.enableResultCache = enableResultCache;
@@ -114,6 +122,7 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
         this.initBuffer(bufferSize);
         this.enableRateLimiter = enableRateLimiter;
         this.initRateLimiter(rateLimiterType, permits, milliSeconds);
+        this.rateLimiterFailStrategy = rateLimiterFailStrategy;
     }
 
     @Override
@@ -289,11 +298,45 @@ public class RpcProviderHandler extends SimpleChannelInboundHandler<RpcProtocol<
                     rateLimiterInvoker.release();
                 }
             }else {
-                throw new RefuseException("current limit reaches upper limit...");
+                responseRpcProtocol = this.invokeFailRateLimiterMethod(protocol, header);
             }
         }else {
             responseRpcProtocol = this.handlerRequestMessageWithCache(protocol, header);
         }
+        return responseRpcProtocol;
+    }
+
+    /**
+     * 执行限流失败时的处理逻辑
+     */
+    private RpcProtocol<RpcResponse> invokeFailRateLimiterMethod(RpcProtocol<RpcRequest> protocol, RpcHeader header) {
+        log.info("execute {} fail rate limiter strategy...", rateLimiterFailStrategy);
+        switch (rateLimiterFailStrategy){
+            case RpcConstants.RATE_LIMILTER_FAIL_STRATEGY_EXCEPTION:
+                throw new RefuseException("fail rate limiter strategy..");
+            case RpcConstants.RATE_LIMILTER_FAIL_STRATEGY_FALLBACK:
+                return this.handlerFallbackMessage(protocol);
+            case RpcConstants.RATE_LIMILTER_FAIL_STRATEGY_DIRECT:
+                return this.handlerRequestMessageWithCache(protocol, header);
+            default:
+                throw new RpcException("Unknown rate limiter..");
+        }
+    }
+
+    /**
+     * 处理降级（容错）消息
+     */
+    private RpcProtocol<RpcResponse> handlerFallbackMessage(RpcProtocol<RpcRequest> protocol) {
+        RpcProtocol<RpcResponse> responseRpcProtocol = new RpcProtocol<>();
+        RpcHeader header = protocol.getHeader();
+        header.setStatus((byte)RpcStatus.FAIL.getCode());
+        header.setMsgType((byte) RpcType.RESPONSE.getType());
+        responseRpcProtocol.setHeader(header);
+
+        RpcResponse response = new RpcResponse();
+        response.setError("provider execute ratelimiter fallback strategy...");
+        responseRpcProtocol.setBody(response);
+
         return responseRpcProtocol;
     }
 

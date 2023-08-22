@@ -89,6 +89,8 @@ public class BaseServer implements Server {
     private int permits;
     //毫秒数
     private int milliSeconds;
+    //当限流失败时的处理策略
+    private String rateLimiterFailStrategy;
 
     public BaseServer(String serverAddress,
                       String serverRegistryAddress,
@@ -110,7 +112,8 @@ public class BaseServer implements Server {
                       boolean enableRateLimiter,
                       String rateLimiterType,
                       int permits,
-                      int milliSeconds) {
+                      int milliSeconds,
+                      String rateLimiterFailStrategy) {
         if (!StringUtils.isEmpty(serverAddress)) {
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
@@ -148,6 +151,7 @@ public class BaseServer implements Server {
         this.rateLimiterType = rateLimiterType;
         this.permits = permits;
         this.milliSeconds = milliSeconds;
+        this.rateLimiterFailStrategy = rateLimiterFailStrategy;
     }
 
     /**
@@ -231,7 +235,8 @@ public class BaseServer implements Server {
                                             enableRateLimiter,
                                             rateLimiterType,
                                             permits,
-                                            milliSeconds));
+                                            milliSeconds,
+                                            rateLimiterFailStrategy));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)

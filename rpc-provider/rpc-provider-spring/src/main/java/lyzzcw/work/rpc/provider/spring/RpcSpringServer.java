@@ -58,7 +58,8 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                            boolean enableRateLimiter,
                            String rateLimiterType,
                            int permits,
-                           int milliSeconds) {
+                           int milliSeconds,
+                           String rateLimiterFailStrategy) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -80,7 +81,8 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                 enableRateLimiter,
                 rateLimiterType,
                 permits,
-                milliSeconds);
+                milliSeconds,
+                rateLimiterFailStrategy);
     }
 
     @Override
