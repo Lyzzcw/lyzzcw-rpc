@@ -475,6 +475,11 @@ public class RpcConstants {
     public static final String DEFAULT_FUSING_INVOKER = "counter";
 
     /**
+     * 错误率熔断规则
+     */
+    public static final String PERCENT_FUSING_INVOKER = "percent";
+
+    /**
      * 熔断状态：关闭
      */
     public static final int FUSING_STATUS_CLOSED = 1;

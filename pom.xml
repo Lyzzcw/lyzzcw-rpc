@@ -32,6 +32,7 @@
         <module>rpc-disuse</module>
         <module>rpc-buffer</module>
         <module>rpc-ratelimiter</module>
+        <module>rpc-fusing</module>
     </modules>
 
     <properties>
