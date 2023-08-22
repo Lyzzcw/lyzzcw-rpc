@@ -143,6 +143,11 @@ public final class SpringBootConsumerConfig {
      */
     private Class<?> fallbackClass;
 
+    /**
+     * 异常后置处理器
+     */
+    private String exceptionPostProcessorType;
+
 
     public SpringBootConsumerConfig() {
     }
@@ -170,7 +175,8 @@ public final class SpringBootConsumerConfig {
                                     final boolean enableBuffer,
                                     final int bufferSize,
                                     final String reflectType,
-                                    final Class<?> fallbackClass) {
+                                    final Class<?> fallbackClass,
+                                    final String exceptionPostProcessorType) {
         this.registryAddress = registryAddress;
         this.registryType = registryType;
         this.loadBalanceType = loadBalanceType;
@@ -196,5 +202,6 @@ public final class SpringBootConsumerConfig {
         this.bufferSize = bufferSize;
         this.reflectType = reflectType;
         this.fallbackClass = fallbackClass;
+        this.exceptionPostProcessorType = exceptionPostProcessorType;
     }
 }

@@ -162,6 +162,11 @@ public class RpcReferenceBean implements FactoryBean<Object> {
      */
     private Class<?> fallbackClass;
 
+    /**
+     * 异常后置处理器类型
+     */
+    private String exceptionPostProcessorType;
+
     @Override
     public Object getObject(){
         return object;
@@ -200,7 +205,8 @@ public class RpcReferenceBean implements FactoryBean<Object> {
                 enableBuffer,
                 bufferSize,
                 reflectType,
-                fallbackClass);
+                fallbackClass,
+                exceptionPostProcessorType);
         this.object = rpcClient.create(interfaceClass);
     }
 

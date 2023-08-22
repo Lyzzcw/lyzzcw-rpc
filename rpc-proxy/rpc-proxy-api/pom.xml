@@ -71,5 +71,10 @@
         </dependency>
         <!-- 反射 end-->
 
+        <dependency>
+            <groupId>lyzzcw.work.rpc</groupId>
+            <artifactId>rpc-exception-monitor-print</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

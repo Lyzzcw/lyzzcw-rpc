@@ -42,7 +42,8 @@ public abstract class BaseProxyFactory<T> implements ProxyFactory {
                 proxyConfig.isEnableResultCache(),
                 proxyConfig.getResultCacheExpire(),
                 proxyConfig.getReflectType(),
-                proxyConfig.getFallbackClass()
+                proxyConfig.getFallbackClass(),
+                proxyConfig.getExceptionPostProcessorType()
                 );
     }
 }

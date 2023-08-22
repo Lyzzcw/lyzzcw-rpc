@@ -14,6 +14,7 @@ import lyzzcw.work.rpc.buffer.object.BufferObject;
 import lyzzcw.work.rpc.constant.RpcConstants;
 import lyzzcw.work.rpc.consumer.common.cache.ConsumerChannelCache;
 import lyzzcw.work.rpc.consumer.common.context.RpcContext;
+import lyzzcw.work.rpc.exception.monitor.processor.ExceptionPostProcessor;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcStatus;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
@@ -48,13 +49,17 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
     private boolean enableBuffer;
     //缓冲区管理器
     private BufferCacheManager<BufferObject<RpcResponse>> bufferCacheManager;
+    //异常后置处理器
+    private ExceptionPostProcessor exceptionPostProcessor;
 
     public RpcConsumerHandler(boolean enableBuffer,
                               int bufferSize,
-                              ConcurrentThreadPool concurrentThreadPool){
+                              ConcurrentThreadPool concurrentThreadPool,
+                              ExceptionPostProcessor exceptionPostProcessor){
         this.concurrentThreadPool = concurrentThreadPool;
         this.enableBuffer = enableBuffer;
         this.initBuffer(bufferSize);
+        this.exceptionPostProcessor = exceptionPostProcessor;
     }
     //netty 激活连接
     @Override
@@ -80,6 +85,7 @@ public class RpcConsumerHandler extends SimpleChannelInboundHandler<RpcProtocol<
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx,cause);
         ConsumerChannelCache.remove(ctx.channel());
+        exceptionPostProcessor.postExceptionProcessor(cause);
     }
 
     @Override

@@ -122,6 +122,10 @@ public class RpcClient {
      */
     private Class<?> fallbackClass;
 
+    /**
+     * 异常后置处理器类型
+     */
+    private String exceptionPostProcessorType;
 
     public RpcClient(String registryAddress,
                      String registryType,
@@ -148,7 +152,8 @@ public class RpcClient {
                      boolean enableBuffer,
                      int bufferSize,
                      String reflectType,
-                     Class<?> fallbackClass) {
+                     Class<?> fallbackClass,
+                     String exceptionPostProcessorType) {
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
         this.serviceGroup = serviceGroup;
@@ -173,6 +178,7 @@ public class RpcClient {
         this.bufferSize = bufferSize;
         this.reflectType = reflectType;
         this.fallbackClass = fallbackClass;
+        this.exceptionPostProcessorType = exceptionPostProcessorType;
     }
 
     /**
@@ -210,7 +216,8 @@ public class RpcClient {
                         enableResultCache,
                         resultCacheExpire,
                         reflectType,
-                        fallbackClass));
+                        fallbackClass,
+                        exceptionPostProcessorType));
         return proxyFactory.getProxy(interfaceClass);
     }
 
@@ -228,7 +235,8 @@ public class RpcClient {
                 enableResultCache,
                 resultCacheExpire,
                 reflectType,
-                fallbackClass);
+                fallbackClass,
+                exceptionPostProcessorType);
     }
 
     /**
@@ -247,6 +255,7 @@ public class RpcClient {
                 .setFlowPostProcessor(flowType)
                 .setEnableBuffer(enableBuffer)
                 .setBufferSize(bufferSize)
+                .setExceptionPostProcessor(exceptionPostProcessorType)
                 .buildNettyGroup()
                 .initConnection(registryService);
     }

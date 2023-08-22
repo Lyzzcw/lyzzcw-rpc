@@ -175,6 +175,11 @@ public class SpringBootConsumerAutoConfiguration {
                 || (RpcConstants.DEFAULT_REFLECT_TYPE.equals(referenceBean.getReflectType()) && !StringUtils.isEmpty(springBootConsumerConfig.getReflectType()))){
             referenceBean.setReflectType(springBootConsumerConfig.getReflectType());
         }
+
+        if (StringUtils.isEmpty(referenceBean.getExceptionPostProcessorType())
+                || (RpcConstants.EXCEPTION_POST_PROCESSOR_PRINT.equals(referenceBean.getExceptionPostProcessorType()) && !StringUtils.isEmpty(springBootConsumerConfig.getExceptionPostProcessorType()))){
+            referenceBean.setExceptionPostProcessorType(springBootConsumerConfig.getExceptionPostProcessorType());
+        }
         return referenceBean;
     }
 }

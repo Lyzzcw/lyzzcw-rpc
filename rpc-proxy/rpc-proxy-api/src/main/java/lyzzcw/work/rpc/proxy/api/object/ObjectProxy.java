@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import lyzzcw.work.rpc.cache.result.CacheResultKey;
 import lyzzcw.work.rpc.cache.result.CacheResultManager;
 import lyzzcw.work.rpc.constant.RpcConstants;
+import lyzzcw.work.rpc.exception.monitor.processor.ExceptionPostProcessor;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
 import lyzzcw.work.rpc.protocol.enums.RpcType;
 import lyzzcw.work.rpc.protocol.header.RpcHeaderFactory;
@@ -85,6 +86,11 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
      */
     private Class<?> fallbackClass;
 
+    /**
+     * 异常后置处理器
+     */
+    private ExceptionPostProcessor exceptionPostProcessor;
+
 
     public ObjectProxy(Class<T> clazz) {
         this.clazz = clazz;
@@ -101,7 +107,8 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
                        boolean enableResultCache,
                        int resultCacheExpire,
                        String reflectType,
-                       Class<?> fallbackClass) {
+                       Class<?> fallbackClass,
+                       String exceptionPostProcessorType) {
         this.clazz = clazz;
         this.serviceVersion = serviceVersion;
         this.timeout = timeout;
@@ -118,6 +125,7 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
         this.cacheResultManager = CacheResultManager.getInstance(resultCacheExpire, enableResultCache);
         this.reflectInvoker = ExtensionLoader.getExtension(ReflectInvoker.class, reflectType);
         this.fallbackClass = fallbackClass;
+        this.exceptionPostProcessor =ExtensionLoader.getExtension(ExceptionPostProcessor.class,exceptionPostProcessorType);
     }
 
     /**
@@ -233,6 +241,7 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
             RpcFuture rpcFuture = this.consumer.sendRequest(requestRpcProtocol,registryService);
             return rpcFuture == null ? null : timeout > 0 ? rpcFuture.get(timeout, TimeUnit.MILLISECONDS) : rpcFuture.get();
         }catch (Throwable ex){
+            exceptionPostProcessor.postExceptionProcessor(ex);
             if(this.isFallbackClassEmpty(fallbackClass)){
                 return null;
             }
@@ -248,6 +257,7 @@ public class ObjectProxy <T> implements IAsyncObjectProxy,InvocationHandler {
         try {
             rpcFuture = this.consumer.sendRequest(request,registryService);
         } catch (Exception e) {
+            exceptionPostProcessor.postExceptionProcessor(e);
             log.error("async all throws exception:", e);
         }
         return rpcFuture;

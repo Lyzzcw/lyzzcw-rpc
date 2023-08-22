@@ -91,6 +91,11 @@ public class ProxyConfig<T> implements Serializable {
      */
     private Class<?> fallbackClass;
 
+    /**
+     * 异常后置处理器类型
+     */
+    private String exceptionPostProcessorType;
+
 
 
     public ProxyConfig(Class<T> clazz,
@@ -105,7 +110,8 @@ public class ProxyConfig<T> implements Serializable {
                        boolean enableResultCache,
                        int resultCacheExpire,
                        String reflectType,
-                       Class<?> fallbackClass) {
+                       Class<?> fallbackClass,
+                       String exceptionPostProcessorType) {
         this.clazz = clazz;
         this.serviceVersion = serviceVersion;
         this.serviceGroup = serviceGroup;
@@ -119,5 +125,6 @@ public class ProxyConfig<T> implements Serializable {
         this.resultCacheExpire = resultCacheExpire;
         this.reflectType = reflectType;
         this.fallbackClass = fallbackClass;
+        this.exceptionPostProcessorType = exceptionPostProcessorType;
     }
 }

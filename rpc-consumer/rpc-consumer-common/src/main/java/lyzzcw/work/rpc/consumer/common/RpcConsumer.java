@@ -18,6 +18,7 @@ import lyzzcw.work.rpc.consumer.common.handler.RpcConsumerHandler;
 import lyzzcw.work.rpc.consumer.common.helper.RpcConsumerHandlerHelper;
 import lyzzcw.work.rpc.consumer.common.initializer.RpcConsumerInitializer;
 import lyzzcw.work.rpc.consumer.common.manager.ConsumerConnectionManager;
+import lyzzcw.work.rpc.exception.monitor.processor.ExceptionPostProcessor;
 import lyzzcw.work.rpc.flow.processor.FlowPostProcessor;
 import lyzzcw.work.rpc.loadbalancer.context.ConnectionsContext;
 import lyzzcw.work.rpc.protocol.RpcProtocol;
@@ -79,6 +80,8 @@ public class RpcConsumer implements Consumer {
     private boolean enableBuffer;
     //缓冲区大小
     private int bufferSize;
+    //异常后置处理器
+    private ExceptionPostProcessor exceptionPostProcessor;
 
     private RpcConsumer(){
         bootstrap = new Bootstrap();
@@ -95,7 +98,8 @@ public class RpcConsumer implements Consumer {
                             enableBuffer,
                             bufferSize,
                             concurrentThreadPool,
-                            flowPostProcessor));
+                            flowPostProcessor,
+                            exceptionPostProcessor));
         }catch (IllegalStateException e){
             bootstrap = new Bootstrap();
             bootstrap.group(eventLoopGroup)
@@ -105,7 +109,8 @@ public class RpcConsumer implements Consumer {
                             enableBuffer,
                             bufferSize,
                             concurrentThreadPool,
-                            flowPostProcessor));
+                            flowPostProcessor,
+                            exceptionPostProcessor));
         }
         return this;
     }
@@ -134,6 +139,11 @@ public class RpcConsumer implements Consumer {
         }
         //开启心跳
         this.startHeartbeat();
+    }
+
+    public RpcConsumer setExceptionPostProcessor(String exceptionPostProcessorType){
+        this.exceptionPostProcessor = ExtensionLoader.getExtension(ExceptionPostProcessor.class,exceptionPostProcessorType);
+        return this;
     }
 
     public RpcConsumer setEnableBuffer(boolean enableBuffer) {

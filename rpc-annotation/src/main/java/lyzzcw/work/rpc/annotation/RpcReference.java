@@ -137,4 +137,9 @@ public @interface RpcReference {
      * 反射类型
      */
     String reflectType() default RpcConstants.DEFAULT_REFLECT_TYPE;
+
+    /**
+     * 异常后置处理器类型
+     */
+    String exceptionPostProcessorType() default RpcConstants.EXCEPTION_POST_PROCESSOR_PRINT;
 }

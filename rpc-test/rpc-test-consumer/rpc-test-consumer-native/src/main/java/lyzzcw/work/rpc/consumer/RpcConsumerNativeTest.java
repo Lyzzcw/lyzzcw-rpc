@@ -43,7 +43,8 @@ public class RpcConsumerNativeTest {
                 false,
                 0,
                 RpcConstants.REFLECT_TYPE_CGLIB,
-                void.class);
+                void.class,
+                null);
         DemoService demoService = client.create(DemoService.class);
         for (int i = 0; i < 2 ;i++) {
             String result = demoService.hello("lzy", 29);
