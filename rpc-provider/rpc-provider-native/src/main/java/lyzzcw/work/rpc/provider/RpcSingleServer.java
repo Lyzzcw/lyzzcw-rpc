@@ -39,7 +39,8 @@ public class RpcSingleServer extends BaseServer {
                            boolean enableFusing,
                            String fusingType,
                            double totalFailure,
-                           int fusingMilliSeconds) {
+                           int fusingMilliSeconds,
+                           String exceptionPostProcessorType) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -66,7 +67,8 @@ public class RpcSingleServer extends BaseServer {
                 enableFusing,
                 fusingType,
                 totalFailure,
-                fusingMilliSeconds);
+                fusingMilliSeconds,
+                exceptionPostProcessorType);
         try {
             this.handlerMap =
                     RpcServiceScanner.doScannerWithRpcServiceAnnotationFilterAndRegistryService(

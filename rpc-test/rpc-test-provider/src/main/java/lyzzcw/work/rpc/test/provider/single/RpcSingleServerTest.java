@@ -40,7 +40,8 @@ public class RpcSingleServerTest {
                 false,
                 "test",
                 0.00,
-                1000);
+                1000,
+                null);
         singleServer.startNettyServer();
     }
 

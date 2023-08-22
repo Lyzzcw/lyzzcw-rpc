@@ -142,6 +142,11 @@ public final class SpringBootProviderConfig {
      */
     private int fusingMilliSeconds;
 
+    /**
+     * 异常后置处理器
+     */
+    private String exceptionPostProcessorType;
+
 
     public SpringBootProviderConfig() {
     }
@@ -170,7 +175,8 @@ public final class SpringBootProviderConfig {
                                     final boolean enableFusing,
                                     final String fusingType,
                                     final double totalFailure,
-                                    final int fusingMilliSeconds) {
+                                    final int fusingMilliSeconds,
+                                    final String exceptionPostProcessorType) {
         this.serverAddress = serverAddress;
         this.registryAddress = registryAddress;
         this.registryType = registryType;
@@ -198,5 +204,6 @@ public final class SpringBootProviderConfig {
         this.fusingType = fusingType;
         this.totalFailure = totalFailure;
         this.fusingMilliSeconds = fusingMilliSeconds;
+        this.exceptionPostProcessorType = exceptionPostProcessorType;
     }
 }

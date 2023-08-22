@@ -99,6 +99,8 @@ public class BaseServer implements Server {
     private double totalFailure;
     //熔断的毫秒时长
     private int fusingMilliSeconds;
+    //异常后置处理器
+    private String exceptionPostProcessorType;
 
     public BaseServer(String serverAddress,
                       String serverRegistryAddress,
@@ -125,7 +127,8 @@ public class BaseServer implements Server {
                       boolean enableFusing,
                       String fusingType,
                       double totalFailure,
-                      int fusingMilliSeconds) {
+                      int fusingMilliSeconds,
+                      String exceptionPostProcessorType) {
         if (!StringUtils.isEmpty(serverAddress)) {
             String[] serverArray = serverAddress.split(":");
             this.host = serverArray[0];
@@ -168,6 +171,7 @@ public class BaseServer implements Server {
         this.fusingType = fusingType;
         this.totalFailure = totalFailure;
         this.fusingMilliSeconds = fusingMilliSeconds;
+        this.exceptionPostProcessorType = exceptionPostProcessorType;
     }
 
     /**
@@ -256,7 +260,8 @@ public class BaseServer implements Server {
                                             enableFusing,
                                             fusingType,
                                             totalFailure,
-                                            fusingMilliSeconds));
+                                            fusingMilliSeconds,
+                                            exceptionPostProcessorType));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)          // (5)

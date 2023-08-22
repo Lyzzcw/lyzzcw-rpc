@@ -63,7 +63,8 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                            boolean enableFusing,
                            String fusingType,
                            double totalFailure,
-                           int fusingMilliSeconds) {
+                           int fusingMilliSeconds,
+                           String exceptionPostProcessorType) {
         //调用父类构造方法
         super(serverAddress,
                 serverRegistryAddress,
@@ -90,7 +91,8 @@ public class RpcSpringServer extends BaseServer implements ApplicationContextAwa
                 enableFusing,
                 fusingType,
                 totalFailure,
-                fusingMilliSeconds);
+                fusingMilliSeconds,
+                exceptionPostProcessorType);
     }
 
     @Override

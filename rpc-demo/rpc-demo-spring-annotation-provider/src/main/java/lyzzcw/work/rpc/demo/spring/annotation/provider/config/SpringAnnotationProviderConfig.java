@@ -110,6 +110,9 @@ public class SpringAnnotationProviderConfig {
     @Value("${server.fusingMilliSeconds}")
     private int fusingMilliSeconds;
 
+    @Value("${server.exceptionPostProcessorType}")
+    private String exceptionPostProcessorType;
+
     @Bean
     public RpcSpringServer rpcSpringServer(){
         return new RpcSpringServer(
@@ -138,6 +141,7 @@ public class SpringAnnotationProviderConfig {
                 enableFusing,
                 fusingType,
                 totalFailure,
-                fusingMilliSeconds);
+                fusingMilliSeconds,
+                exceptionPostProcessorType);
     }
 }
